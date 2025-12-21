@@ -9,7 +9,7 @@ const { join } = require('path');
 const { confirm } = require('../utils');
 const theme = require('../theme');
 
-const run = async ({ cwd, dry, tags, ci }, packageName, otp) => {
+const run = async ({ cwd, dry, tags, ci, publishVersion }, packageName, otp) => {
   const packagePath = join(cwd, 'build/node_modules', packageName);
   const pkgJsonPath = join(packagePath, 'package.json');
 
@@ -44,13 +44,21 @@ const run = async ({ cwd, dry, tags, ci }, packageName, otp) => {
   // }
 
   let pkgJson = readJsonSync(pkgJsonPath);
-  const { version } = pkgJson;
+  const { version: packageJsonVersion } = pkgJson;
+  const version = publishVersion ?? packageJsonVersion;
 
   // Rename package if it's one of the ones we want to fork
   if (packageName === 'react') {
     pkgJson.name = '@thomasjahoda-forks/react';
   } else if (packageName === 'react-dom') {
     pkgJson.name = '@thomasjahoda-forks/react-dom';
+  }
+
+  if (pkgJson.version !== version) {
+    console.warn(
+      theme`Package version in package.json (${pkgJson.version}) does not match the version to be published (${version}). Will update package.json to match.`
+    );
+    pkgJson.version = version;
   }
 
   // Update dependencies/peerDependencies to point to the forks
@@ -75,6 +83,36 @@ const run = async ({ cwd, dry, tags, ci }, packageName, otp) => {
     `Writing package.json for ${publishedName}@${version} to ${pkgJsonPath}`
   );
   console.info(`Wrote package.json for ${publishedName}@${version}`);
+
+  // Update require/import calls in the built files to point to the forks
+  const { readdirSync, lstatSync, readFileSync, writeFileSync } = require('fs');
+  const updateFiles = (dir) => {
+    readdirSync(dir).forEach((file) => {
+      const fullPath = join(dir, file);
+      if (lstatSync(fullPath).isDirectory()) {
+        updateFiles(fullPath);
+      } else if (
+        file.endsWith('.js') ||
+        file.endsWith('.d.ts') ||
+        file.endsWith('.mjs') ||
+        file.endsWith('.cjs')
+      ) {
+        const originalContent = readFileSync(fullPath, 'utf8');
+        const updatedContent = originalContent.replace(
+          /(require\(|from\s+)(["'])(react|react-dom)(\/[^"']*)?\2/g,
+          '$1$2@thomasjahoda-forks/$3$4$2'
+        );
+
+        if (updatedContent !== originalContent) {
+          writeFileSync(fullPath, updatedContent);
+          console.info(
+            theme`{spinnerSuccess ✓} Updated references in {path ${file}}`
+          );
+        }
+      }
+    });
+  };
+  updateFiles(packagePath);
 
   // Check if this package version has already been published.
   // If so we might be resuming from a previous run.
