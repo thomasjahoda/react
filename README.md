@@ -1,7 +1,20 @@
 # My Fork Notes
-Build just development version of react-dom:
-`yarn build react-dom/index,react-dom/client --release-channel=stable --type=NODE_DEV`
-`yarn build react,react-dom/index,react-dom/client --release-channel=stable --type=NODE_DEV,NODE_PROD`
+Build just what I forked (react and react-dom):
+```
+node ./scripts/rollup/build.js --release-channel=stable --type=NODE_DEV,NODE_PROD
+```
+
+And publishing it:
+```
+node ./publish.js --onlyPackages react,react-dom --tags latest
+node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest
+```
+
+Whatever stuff
+```
+# meh, that command does something additionally which kinda sucks, idk what this is for (moving into oss-stable-semver folder)
+yarn build react,react-dom,react-dom/client --release-channel=stable --type=NODE_DEV,NODE_PROD
+```
 
 # [React](https://react.dev/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebook/react/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/react.svg?style=flat)](https://www.npmjs.com/package/react) [![(Runtime) Build and Test](https://github.com/facebook/react/actions/workflows/runtime_build_and_test.yml/badge.svg)](https://github.com/facebook/react/actions/workflows/runtime_build_and_test.yml) [![(Compiler) TypeScript](https://github.com/facebook/react/actions/workflows/compiler_typescript.yml/badge.svg?branch=main)](https://github.com/facebook/react/actions/workflows/compiler_typescript.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://legacy.reactjs.org/docs/how-to-contribute.html#your-first-pull-request)
 

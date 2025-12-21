@@ -2,10 +2,10 @@
 
 'use strict';
 
-const {join} = require('path');
-const {readJsonSync} = require('fs-extra');
+const { join } = require('path');
+const { readJsonSync } = require('fs-extra');
 const clear = require('clear');
-const {getPublicPackages, handleError} = require('./utils');
+const { getPublicPackages, handleError } = require('./utils');
 const theme = require('./theme');
 
 // const checkNPMPermissions = require('./publish-commands/check-npm-permissions');
@@ -23,9 +23,22 @@ const run = async () => {
   try {
     const params = parseParams();
 
-    const version =
-      params.publishVersion ??
-      readJsonSync('./build/node_modules/react/package.json').version;
+    const getInitialVersion = () => {
+      if (params.publishVersion) {
+        return params.publishVersion;
+      }
+      const buildPath = join(__dirname, '..', '..', './build/node_modules/react/package.json');
+      if (require('fs').existsSync(buildPath)) {
+        return readJsonSync(buildPath).version;
+      }
+      const sourcePath = join(__dirname, '..', '..', './packages/react/package.json');
+      if (require('fs').existsSync(sourcePath)) {
+        return readJsonSync(sourcePath).version;
+      }
+      throw new Error('Could not determine version to publish.');
+    };
+
+    const version = getInitialVersion();
     const isExperimental = version.includes('experimental');
 
     params.cwd = join(__dirname, '..', '..');
@@ -88,7 +101,7 @@ const run = async () => {
     } else {
       clear();
       let otp = await promptForOTP(params);
-      for (let i = 0; i < packageNames.length; ) {
+      for (let i = 0; i < packageNames.length;) {
         const packageName = packageNames[i];
         try {
           await publishToNPM(params, packageName, otp);
