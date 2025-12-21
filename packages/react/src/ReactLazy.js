@@ -244,6 +244,7 @@ export function lazy<T>(
       debugStack: new Error('react-stack-top-frame'),
       // eslint-disable-next-line react-internal/no-production-logging
       debugTask: console.createTask ? console.createTask('lazy()') : null,
+      // debugTask: null,
     };
     payload._ioInfo = ioInfo;
     // Add debug info to the lazy, but this doesn't have an await stack yet.

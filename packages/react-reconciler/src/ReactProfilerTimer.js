@@ -48,6 +48,7 @@ const createTask =
     ? // eslint-disable-next-line react-internal/no-production-logging
       console.createTask
     : (name: string) => null;
+// const createTask = (_name: string) => null;
 
 export const REGULAR_UPDATE: UpdateType = 0;
 export const SPAWNED_UPDATE: UpdateType = 1;

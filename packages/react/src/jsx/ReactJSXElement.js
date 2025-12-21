@@ -19,12 +19,13 @@ import {checkKeyStringCoercion} from 'shared/CheckStringCoercion';
 import isArray from 'shared/isArray';
 import {ownerStackLimit, enableOptimisticKey} from 'shared/ReactFeatureFlags';
 
-const createTask =
-  // eslint-disable-next-line react-internal/no-production-logging
-  __DEV__ && console.createTask
-    ? // eslint-disable-next-line react-internal/no-production-logging
-      console.createTask
-    : () => null;
+// const createTask =
+//   // eslint-disable-next-line react-internal/no-production-logging
+//   __DEV__ && console.createTask
+//     ? // eslint-disable-next-line react-internal/no-production-logging
+//       console.createTask
+//     : () => null;
+const createTask = () => null;
 
 function getTaskName(type) {
   if (type === REACT_FRAGMENT_TYPE) {
