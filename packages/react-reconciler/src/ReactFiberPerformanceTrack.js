@@ -44,8 +44,8 @@ const supportsUserTiming =
       // $FlowFixMe[method-unbinding]
       typeof performance.measure === 'function'));
 
-const COMPONENTS_TRACK = 'Components ⚛';
-const LANES_TRACK_GROUP = 'Scheduler ⚛';
+// const COMPONENTS_TRACK = 'Components ⚛';
+// const LANES_TRACK_GROUP = 'Scheduler ⚛';
 
 let currentTrack: string = 'Blocking'; // Lane
 
@@ -298,7 +298,7 @@ export function logComponentRender(
         endTime,
         {
           knownAdditionalData: {
-            track: COMPONENTS_TRACK,
+            // track: COMPONENTS_TRACK,
             color,
           },
         },
@@ -354,7 +354,7 @@ export function logComponentRender(
             endTime,
             {
               knownAdditionalData: {
-                track: COMPONENTS_TRACK,
+                // track: COMPONENTS_TRACK,
                 isDeeplyEqualAndUserShouldSeeWarning,
                 changedPropertyEntries: properties,
               },
@@ -489,7 +489,7 @@ export function logComponentErrored(
         {
           knownAdditionalData: {
             color: 'error',
-            track: COMPONENTS_TRACK,
+            // track: COMPONENTS_TRACK,
             tooltipText:
               fiber.tag === SuspenseComponent
                 ? 'Hydration failed'
@@ -507,7 +507,7 @@ export function logComponentErrored(
         endTime,
         {
           knownAdditionalData: {
-            track: COMPONENTS_TRACK,
+            // track: COMPONENTS_TRACK,
             color: 'error',
           },
           error: true,
@@ -561,7 +561,7 @@ function logComponentEffectErrored(
         {
           knownAdditionalData: {
             color: 'error',
-            track: COMPONENTS_TRACK,
+            // track: COMPONENTS_TRACK,
             tooltipText: 'A lifecycle or effect errored',
             properties,
           },
@@ -576,7 +576,7 @@ function logComponentEffectErrored(
         endTime,
         {
           knownAdditionalData: {
-            track: COMPONENTS_TRACK,
+            // track: COMPONENTS_TRACK,
             color: 'error',
           },
           error: true,
@@ -621,7 +621,7 @@ export function logComponentEffect(
       endTime,
       {
         knownAdditionalData: {
-          track: COMPONENTS_TRACK,
+          // track: COMPONENTS_TRACK,
           color,
           selfTime,
         },
@@ -655,12 +655,12 @@ export function logYieldTime(startTime: number, endTime: number): void {
     // TODO: Considering adding these to a queue and only logging them if we commit.
     currentTrackingService.createFinishedSpan(
       'Blocked',
-      'Scheduler',
+      'ReactComponent',
       startTime,
       endTime,
       {
         knownAdditionalData: {
-          track: COMPONENTS_TRACK,
+          // track: COMPONENTS_TRACK,
           color,
         },
       },
@@ -679,12 +679,12 @@ export function logSuspendedYieldTime(
   if (supportsUserTiming) {
     currentTrackingService.createFinishedSpan(
       'Suspended',
-      'Scheduler',
+      'ReactComponent',
       startTime,
       endTime,
       {
         knownAdditionalData: {
-          track: COMPONENTS_TRACK,
+          // track: COMPONENTS_TRACK,
           color: 'primary-light',
         },
       },
@@ -703,12 +703,12 @@ export function logActionYieldTime(
   if (supportsUserTiming) {
     currentTrackingService.createFinishedSpan(
       'Action',
-      'Scheduler',
+      'ReactComponent',
       startTime,
       endTime,
       {
         knownAdditionalData: {
-          track: COMPONENTS_TRACK,
+          // track: COMPONENTS_TRACK,
           color: 'primary-light',
         },
       },
@@ -763,7 +763,7 @@ export function logBlockingStart(
         {
           knownAdditionalData: {
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             color,
           },
         },
@@ -794,14 +794,14 @@ export function logBlockingStart(
         }
         currentTrackingService.createFinishedSpan(
           label,
-          'Scheduler',
+          'ReactScheduler',
           updateTime,
           renderStartTime,
           {
             knownAdditionalData: {
               properties,
               track: currentTrack,
-              trackGroup: LANES_TRACK_GROUP,
+              // trackGroup: LANES_TRACK_GROUP,
               color,
               performanceIssue:
                 enablePerformanceIssueReporting && isSpawnedUpdate
@@ -813,13 +813,13 @@ export function logBlockingStart(
       } else {
         currentTrackingService.createFinishedSpan(
           label,
-          'Scheduler',
+          'ReactScheduler',
           updateTime,
           renderStartTime,
           {
             knownAdditionalData: {
               track: currentTrack,
-              trackGroup: LANES_TRACK_GROUP,
+              // trackGroup: LANES_TRACK_GROUP,
               color,
             },
           },
@@ -866,13 +866,13 @@ export function logGestureStart(
       const color = eventIsRepeat ? 'secondary-light' : 'warning';
       currentTrackingService.createFinishedSpan(
         eventIsRepeat ? 'Consecutive' : 'Event: ' + eventType,
-        'Scheduler',
+        'ReactScheduler',
         eventTime,
         updateTime,
         {
           knownAdditionalData: {
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             color,
           },
         },
@@ -895,14 +895,14 @@ export function logGestureStart(
         }
         currentTrackingService.createFinishedSpan(
           label,
-          'Scheduler',
+          'ReactScheduler',
           updateTime,
           renderStartTime,
           {
             knownAdditionalData: {
               properties,
               track: currentTrack,
-              trackGroup: LANES_TRACK_GROUP,
+              // trackGroup: LANES_TRACK_GROUP,
               color: 'primary-light',
             },
           },
@@ -910,13 +910,13 @@ export function logGestureStart(
       } else {
         currentTrackingService.createFinishedSpan(
           label,
-          'Scheduler',
+          'ReactScheduler',
           updateTime,
           renderStartTime,
           {
             knownAdditionalData: {
               track: currentTrack,
-              trackGroup: LANES_TRACK_GROUP,
+              // trackGroup: LANES_TRACK_GROUP,
               color: 'primary-light',
             },
           },
@@ -971,13 +971,13 @@ export function logTransitionStart(
       const color = eventIsRepeat ? 'secondary-light' : 'warning';
       currentTrackingService.createFinishedSpan(
         eventIsRepeat ? 'Consecutive' : 'Event: ' + eventType,
-        'Scheduler',
+        'ReactScheduler',
         eventTime,
         startTime,
         {
           knownAdditionalData: {
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             color,
           },
         },
@@ -988,13 +988,13 @@ export function logTransitionStart(
       // TODO: Ideally this would use the debugTask of the startTransition call perhaps.
       currentTrackingService.createFinishedSpan(
         'Action',
-        'Scheduler',
+        'ReactScheduler',
         startTime,
         updateTime,
         {
           knownAdditionalData: {
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             color: 'primary-dark',
           },
         },
@@ -1017,14 +1017,14 @@ export function logTransitionStart(
         }
         currentTrackingService.createFinishedSpan(
           label,
-          'Scheduler',
+          'ReactScheduler',
           updateTime,
           renderStartTime,
           {
             knownAdditionalData: {
               properties,
               track: currentTrack,
-              trackGroup: LANES_TRACK_GROUP,
+              // trackGroup: LANES_TRACK_GROUP,
               color: 'primary-light',
             },
           },
@@ -1032,13 +1032,13 @@ export function logTransitionStart(
       } else {
         currentTrackingService.createFinishedSpan(
           label,
-          'Scheduler',
+          'ReactScheduler',
           updateTime,
           renderStartTime,
           {
             knownAdditionalData: {
               track: currentTrack,
-              trackGroup: LANES_TRACK_GROUP,
+              // trackGroup: LANES_TRACK_GROUP,
               color: 'primary-light',
             },
           },
@@ -1071,13 +1071,13 @@ export function logRenderPhase(
         : 'Render';
     currentTrackingService.createFinishedSpan(
       label,
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color,
         },
       },
@@ -1108,13 +1108,13 @@ export function logInterruptedRenderPhase(
         : 'Interrupted Render';
     currentTrackingService.createFinishedSpan(
       label,
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color,
         },
       },
@@ -1140,13 +1140,13 @@ export function logSuspendedRenderPhase(
       : 'primary-dark';
     currentTrackingService.createFinishedSpan(
       'Prewarm',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color,
         },
       },
@@ -1173,13 +1173,13 @@ export function logSuspendedWithDelayPhase(
       : 'primary-dark';
     currentTrackingService.createFinishedSpan(
       'Suspended',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color,
         },
       },
@@ -1219,14 +1219,14 @@ export function logRecoveredRenderPhase(
       }
       currentTrackingService.createFinishedSpan(
         'Recovered',
-        'Scheduler',
+        'ReactScheduler',
         startTime,
         endTime,
         {
           knownAdditionalData: {
             color: 'primary-dark',
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             tooltipText: hydrationFailed
               ? 'Hydration Failed'
               : 'Recovered after Error',
@@ -1237,13 +1237,13 @@ export function logRecoveredRenderPhase(
     } else {
       currentTrackingService.createFinishedSpan(
         'Recovered',
-        'Scheduler',
+        'ReactScheduler',
         startTime,
         endTime,
         {
           knownAdditionalData: {
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             color: 'error',
           },
         },
@@ -1267,13 +1267,13 @@ export function logErroredRenderPhase(
     }
     currentTrackingService.createFinishedSpan(
       'Errored',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: 'error',
         },
         error: true,
@@ -1296,13 +1296,13 @@ export function logInconsistentRender(
     }
     currentTrackingService.createFinishedSpan(
       'Teared Render',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: 'error',
         },
         error: true,
@@ -1329,13 +1329,13 @@ export function logSuspendedCommitPhase(
     // TODO: This might also be Suspended while waiting on a View Transition.
     currentTrackingService.createFinishedSpan(
       reason,
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: 'secondary-light',
         },
       },
@@ -1361,13 +1361,13 @@ export function logSuspendedViewTransitionPhase(
     // TODO: This might also be Suspended while waiting on a View Transition.
     currentTrackingService.createFinishedSpan(
       reason,
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: 'secondary-light',
         },
       },
@@ -1406,14 +1406,14 @@ export function logCommitErrored(
       }
       currentTrackingService.createFinishedSpan(
         'Errored',
-        'Scheduler',
+        'ReactScheduler',
         startTime,
         endTime,
         {
           knownAdditionalData: {
             color: 'error',
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             tooltipText: passive ? 'Remaining Effects Errored' : 'Commit Errored',
             properties,
           },
@@ -1423,13 +1423,13 @@ export function logCommitErrored(
     } else {
       currentTrackingService.createFinishedSpan(
         'Errored',
-        'Scheduler',
+        'ReactScheduler',
         startTime,
         endTime,
         {
           knownAdditionalData: {
             track: currentTrack,
-            trackGroup: LANES_TRACK_GROUP,
+            // trackGroup: LANES_TRACK_GROUP,
             color: 'error',
           },
           error: true,
@@ -1459,13 +1459,13 @@ export function logCommitPhase(
     }
     currentTrackingService.createFinishedSpan(
       abortedViewTransition ? 'Commit Interrupted View Transition' : 'Commit',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: abortedViewTransition ? 'error' : 'secondary-dark',
         },
       },
@@ -1488,13 +1488,13 @@ export function logPaintYieldPhase(
     }
     currentTrackingService.createFinishedSpan(
       delayedUntilPaint ? 'Waiting for Paint' : 'Waiting',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: 'secondary-light',
         },
       },
@@ -1519,13 +1519,13 @@ export function logStartViewTransitionYieldPhase(
       abortedViewTransition
         ? 'Interrupted View Transition'
         : 'Starting Animation',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: abortedViewTransition ? 'error' : 'secondary-light',
         },
       },
@@ -1547,13 +1547,13 @@ export function logAnimatingPhase(
     }
     currentTrackingService.createFinishedSpan(
       'Animating',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: 'secondary-dark',
         },
       },
@@ -1580,13 +1580,13 @@ export function logPassiveCommitPhase(
     }
     currentTrackingService.createFinishedSpan(
       'Remaining Effects',
-      'Scheduler',
+      'ReactScheduler',
       startTime,
       endTime,
       {
         knownAdditionalData: {
           track: currentTrack,
-          trackGroup: LANES_TRACK_GROUP,
+          // trackGroup: LANES_TRACK_GROUP,
           color: 'secondary-dark',
         },
       },
