@@ -165,11 +165,24 @@ async function main() {
         `../../packages/${pkgName}/package.json`
       );
 
-      spinner.start(`Writing package.json for ${pkgName}@${newVersion}`);
+      spinner.start(
+        `Writing package.json for ${pkgName}@${newVersion} to ${pkgJsonPath}`
+      );
+      let originalPackageJson = await readJson(pkgJsonPath);
       await writeJson(
         pkgJsonPath,
         {
-          ...(await readJson(pkgJsonPath)),
+          ...originalPackageJson,
+          name: (() => {
+            const originalName = originalPackageJson.name;
+            if (originalName === 'react-dom') {
+              return '@thomasjahoda-forks/react-dom';
+            }else if (originalName === 'react') {
+              return '@thomasjahoda-forks/react';
+            }else {
+              throw new Error(`Unexpected package name: ${originalName}`);
+            }
+          })(),
           version: newVersion,
         },
         {spaces: 2}

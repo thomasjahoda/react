@@ -4,7 +4,7 @@
 
 const {spawnSync} = require('child_process');
 const {exec} = require('child-process-promise');
-const {readJsonSync} = require('fs-extra');
+const {readJsonSync, writeJsonSync} = require('fs-extra');
 const {join} = require('path');
 const {confirm} = require('../utils');
 const theme = require('../theme');
@@ -12,6 +12,30 @@ const theme = require('../theme');
 const run = async ({cwd, dry, tags, ci}, packageName, otp) => {
   const packagePath = join(cwd, 'build/node_modules', packageName);
   const {version} = readJsonSync(join(packagePath, 'package.json'));
+
+  const pkgJsonPath = join(packagePath, 'package.json');
+  console.info(
+    `Writing package.json for ${packageName}@${version} to ${pkgJsonPath}`
+  );
+  let originalPackageJson = readJsonSync(pkgJsonPath);
+  writeJsonSync(
+    pkgJsonPath,
+    {
+      ...originalPackageJson,
+      name: (() => {
+        const originalName = originalPackageJson.name;
+        if (originalName === 'react-dom') {
+          return '@thomasjahoda-forks/react-dom';
+        } else if (originalName === 'react') {
+          return '@thomasjahoda-forks/react';
+        } else {
+          throw new Error(`Unexpected package name: ${originalName}`);
+        }
+      })(),
+    },
+    {spaces: 2}
+  );
+  console.info(`Wrote package.json for ${packageName}@${version}`);
 
   // Check if this package version has already been published.
   // If so we might be resuming from a previous run.

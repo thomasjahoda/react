@@ -8,7 +8,7 @@ const clear = require('clear');
 const {getPublicPackages, handleError} = require('./utils');
 const theme = require('./theme');
 
-const checkNPMPermissions = require('./publish-commands/check-npm-permissions');
+// const checkNPMPermissions = require('./publish-commands/check-npm-permissions');
 const confirmSkippedPackages = require('./publish-commands/confirm-skipped-packages');
 const confirmVersionAndTags = require('./publish-commands/confirm-version-and-tags');
 const parseParams = require('./publish-commands/parse-params');
@@ -62,7 +62,7 @@ const run = async () => {
     await confirmSkippedPackages(params);
     await confirmVersionAndTags(params);
     await validateSkipPackages(params);
-    await checkNPMPermissions(params);
+    // await checkNPMPermissions(params);
 
     const packageNames = params.packages;
 
