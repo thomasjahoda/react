@@ -12,6 +12,13 @@
 import type {Fiber} from './ReactInternalTypes';
 
 import type {Lanes} from './ReactFiberLane';
+import {
+  getGroupNameOfHighestPriorityLane,
+  includesOnlyHydrationLanes,
+  includesOnlyHydrationOrOffscreenLanes,
+  includesOnlyOffscreenLanes,
+  includesSomeLane,
+} from './ReactFiberLane';
 
 import type {CapturedValue} from './ReactCapturedValue';
 
@@ -20,24 +27,12 @@ import {SuspenseComponent} from './ReactWorkTags';
 import getComponentNameFromFiber from './getComponentNameFromFiber';
 
 import {
-  getGroupNameOfHighestPriorityLane,
-  includesOnlyHydrationLanes,
-  includesOnlyOffscreenLanes,
-  includesOnlyHydrationOrOffscreenLanes,
-  includesSomeLane,
-} from './ReactFiberLane';
-
-import {
-  addValueToProperties,
-  addObjectToProperties,
   addObjectDiffToProperties,
+  addObjectToProperties,
+  addValueToProperties,
 } from 'shared/ReactPerformanceTrackProperties';
 
-import {
-  enableProfilerTimer,
-  enableGestureTransition,
-  enablePerformanceIssueReporting,
-} from 'shared/ReactFeatureFlags';
+import {enablePerformanceIssueReporting, enableProfilerTimer,} from 'shared/ReactFeatureFlags';
 
 const supportsUserTiming =
   enableProfilerTimer &&
@@ -59,55 +54,91 @@ export function setCurrentTrackFromLanes(lanes: Lanes): void {
 }
 
 export function markAllLanesInOrder() {
-  if (supportsUserTiming) {
-    // Ensure we create all tracks in priority order. Currently performance.mark() are in
-    // first insertion order but performance.measure() are in the reverse order. We can
-    // always add the 0 time slot even if it's in the past. That's still considered for
-    // ordering.
-    console.timeStamp(
-      'Blocking Track',
-      0.003,
-      0.003,
-      'Blocking',
-      LANES_TRACK_GROUP,
-      'primary-light',
-    );
-    if (enableGestureTransition) {
-      console.timeStamp(
-        'Gesture Track',
-        0.003,
-        0.003,
-        'Gesture',
-        LANES_TRACK_GROUP,
-        'primary-light',
-      );
-    }
-    console.timeStamp(
-      'Transition Track',
-      0.003,
-      0.003,
-      'Transition',
-      LANES_TRACK_GROUP,
-      'primary-light',
-    );
-    console.timeStamp(
-      'Suspense Track',
-      0.003,
-      0.003,
-      'Suspense',
-      LANES_TRACK_GROUP,
-      'primary-light',
-    );
-    console.timeStamp(
-      'Idle Track',
-      0.003,
-      0.003,
-      'Idle',
-      LANES_TRACK_GROUP,
-      'primary-light',
-    );
+  // will be called as setup
+  currentTrackingService = getPerformanceTrackingServiceFromGlobalIfTracking();
+
+  // if (supportsUserTiming) {
+  //   // Ensure we create all tracks in priority order. Currently performance.mark() are in
+  //   // first insertion order but performance.measure() are in the reverse order. We can
+  //   // always add the 0 time slot even if it's in the past. That's still considered for
+  //   // ordering.
+  //   console.timeStamp(
+  //     'Blocking Track',
+  //     0.003,
+  //     0.003,
+  //     'Blocking',
+  //     LANES_TRACK_GROUP,
+  //     'primary-light',
+  //   );
+  //   if (enableGestureTransition) {
+  //     console.timeStamp(
+  //       'Gesture Track',
+  //       0.003,
+  //       0.003,
+  //       'Gesture',
+  //       LANES_TRACK_GROUP,
+  //       'primary-light',
+  //     );
+  //   }
+  //   console.timeStamp(
+  //     'Transition Track',
+  //     0.003,
+  //     0.003,
+  //     'Transition',
+  //     LANES_TRACK_GROUP,
+  //     'primary-light',
+  //   );
+  //   console.timeStamp(
+  //     'Suspense Track',
+  //     0.003,
+  //     0.003,
+  //     'Suspense',
+  //     LANES_TRACK_GROUP,
+  //     'primary-light',
+  //   );
+  //   console.timeStamp(
+  //     'Idle Track',
+  //     0.003,
+  //     0.003,
+  //     'Idle',
+  //     LANES_TRACK_GROUP,
+  //     'primary-light',
+  //   );
+  // }
+}
+
+export type PerformanceTrackingService = {
+  startSpan: (
+    name: string,
+    type: string,
+    options: {syncSourceSpanId?: string, knownAdditionalData?: any},
+  ) => string,
+  createFinishedSpan: (
+    name: string,
+    type: string,
+    startTime: number,
+    endTime: number,
+    options: {
+      syncSourceSpanId?: string,
+      knownAdditionalData?: any,
+      error?: boolean,
+    },
+  ) => string,
+  isTracking: boolean,
+};
+
+function getPerformanceTrackingServiceFromGlobalIfTracking(): ?PerformanceTrackingService {
+  const service: ?PerformanceTrackingService =
+    // $FlowFixMe
+    globalThis.__reactPerformanceTrackingOverride;
+  if (service !== undefined && service.isTracking) {
+    return service;
+  } else {
+    return undefined;
   }
 }
+
+let currentTrackingService: ?PerformanceTrackingService = undefined;
 
 function logComponentTrigger(
   fiber: Fiber,
@@ -116,25 +147,28 @@ function logComponentTrigger(
   trigger: string,
 ) {
   if (supportsUserTiming) {
-    reusableComponentOptions.start = startTime;
-    reusableComponentOptions.end = endTime;
-    reusableComponentDevToolDetails.color = 'warning';
-    reusableComponentDevToolDetails.tooltipText = trigger;
-    reusableComponentDevToolDetails.properties = null;
-    const debugTask = fiber._debugTask;
-    if (__DEV__ && debugTask) {
-      debugTask.run(
-        // $FlowFixMe[method-unbinding]
-        performance.measure.bind(
-          performance,
-          trigger,
-          reusableComponentOptions,
-        ),
-      );
-    } else {
-      performance.measure(trigger, reusableComponentOptions);
+    if (currentTrackingService !== undefined) {
+      currentTrackingService.createFinishedSpan(trigger, 'ReactComponent', startTime, endTime);
     }
-    performance.clearMeasures(trigger);
+    // reusableComponentOptions.start = startTime;
+    // reusableComponentOptions.end = endTime;
+    // reusableComponentDevToolDetails.color = 'warning';
+    // reusableComponentDevToolDetails.tooltipText = trigger;
+    // reusableComponentDevToolDetails.properties = null;
+    // const debugTask = fiber._debugTask;
+    // if (__DEV__ && debugTask) {
+    //   debugTask.run(
+    //     // $FlowFixMe[method-unbinding]
+    //     performance.measure.bind(
+    //       performance,
+    //       trigger,
+    //       reusableComponentOptions,
+    //     ),
+    //   );
+    // } else {
+    //   performance.measure(trigger, reusableComponentOptions);
+    // }
+    // performance.clearMeasures(trigger);
   }
 }
 
@@ -187,22 +221,22 @@ export function popDeepEquality(prev: boolean): void {
   }
 }
 
-const reusableComponentDevToolDetails = {
-  color: 'primary',
-  properties: (null: null | Array<[string, string]>),
-  tooltipText: '',
-  track: COMPONENTS_TRACK,
-};
+// const reusableComponentDevToolDetails = {
+//   color: 'primary',
+//   properties: (null: null | Array<[string, string]>),
+//   tooltipText: '',
+//   track: COMPONENTS_TRACK,
+// };
 
-const reusableComponentOptions: PerformanceMeasureOptions = {
-  start: -0,
-  end: -0,
-  detail: {
-    devtools: reusableComponentDevToolDetails,
-  },
-};
+// const reusableComponentOptions: PerformanceMeasureOptions = {
+//   start: -0,
+//   end: -0,
+//   detail: {
+//     devtools: reusableComponentDevToolDetails,
+//   },
+// };
 
-const reusableChangedPropsEntry = ['Changed Props', ''];
+// const reusableChangedPropsEntry = ['Changed Props', ''];
 
 const reusableCascadingUpdateIssue = {
   name: 'React: Cascading Update',
@@ -213,10 +247,10 @@ const reusableCascadingUpdateIssue = {
     'https://react.dev/reference/dev-tools/react-performance-tracks#cascading-updates',
 };
 
-const DEEP_EQUALITY_WARNING =
-  'This component received deeply equal props. It might benefit from useMemo or the React Compiler in its owner.';
+// const DEEP_EQUALITY_WARNING =
+//   'This component received deeply equal props. It might benefit from useMemo or the React Compiler in its owner.';
 
-const reusableDeeplyEqualPropsEntry = ['Changed Props', DEEP_EQUALITY_WARNING];
+// const reusableDeeplyEqualPropsEntry = ['Changed Props', DEEP_EQUALITY_WARNING];
 
 export function logComponentRender(
   fiber: Fiber,
@@ -225,6 +259,9 @@ export function logComponentRender(
   wasHydrated: boolean,
   committedLanes: Lanes,
 ): void {
+  if (currentTrackingService === undefined) {
+    return;
+  }
   const name = getComponentNameFromFiber(fiber);
   if (name === null) {
     // Skip
@@ -264,7 +301,7 @@ export function logComponentRender(
       );
     } else {
       const props = fiber.memoizedProps;
-      const debugTask = fiber._debugTask;
+      // const debugTask = fiber._debugTask;
 
       if (
         props !== null &&
@@ -272,7 +309,9 @@ export function logComponentRender(
         alternate.memoizedProps !== props
       ) {
         // If this is an update, we'll diff the props and emit which ones changed.
-        const properties: Array<[string, string]> = [reusableChangedPropsEntry];
+        const properties: Array<[string, string]> = [
+          // reusableChangedPropsEntry
+        ];
         const isDeeplyEqual = addObjectDiffToProperties(
           alternate.memoizedProps,
           props,
@@ -280,93 +319,121 @@ export function logComponentRender(
           0,
         );
         if (properties.length > 1) {
+          let isDeeplyEqualAndUserShouldSeeWarning = false;
           if (
             isDeeplyEqual &&
-            !alreadyWarnedForDeepEquality &&
+            // !alreadyWarnedForDeepEquality &&
             !includesSomeLane(alternate.lanes, committedLanes) &&
             (fiber.actualDuration: any) > 100
           ) {
+            isDeeplyEqualAndUserShouldSeeWarning = true;
             alreadyWarnedForDeepEquality = true;
-            // This is the first component in a subtree which rerendered with deeply equal props
-            // and didn't have its own work scheduled and took a non-trivial amount of time.
-            // We highlight this for further inspection.
-            // Note that we only consider this case if properties.length > 1 which it will only
-            // be if we have emitted any diffs. We'd only emit diffs if there were any nested
-            // equal objects. Therefore, we don't warn for simple shallow equality.
-            properties[0] = reusableDeeplyEqualPropsEntry;
-            reusableComponentDevToolDetails.color = 'warning';
-            reusableComponentDevToolDetails.tooltipText = DEEP_EQUALITY_WARNING;
+            // // This is the first component in a subtree which rerendered with deeply equal props
+            // // and didn't have its own work scheduled and took a non-trivial amount of time.
+            // // We highlight this for further inspection.
+            // // Note that we only consider this case if properties.length > 1 which it will only
+            // // be if we have emitted any diffs. We'd only emit diffs if there were any nested
+            // // equal objects. Therefore, we don't warn for simple shallow equality.
+            // properties[0] = reusableDeeplyEqualPropsEntry;
+            // reusableComponentDevToolDetails.color = 'warning';
+            // reusableComponentDevToolDetails.tooltipText = DEEP_EQUALITY_WARNING;
           } else {
-            reusableComponentDevToolDetails.color = color;
-            reusableComponentDevToolDetails.tooltipText = name;
+            // reusableComponentDevToolDetails.color = color;
+            // reusableComponentDevToolDetails.tooltipText = name;
           }
-          reusableComponentDevToolDetails.properties = properties;
-          reusableComponentOptions.start = startTime;
-          reusableComponentOptions.end = endTime;
-
-          const measureName = '\u200b' + name;
-          if (debugTask != null) {
-            debugTask.run(
-              // $FlowFixMe[method-unbinding]
-              performance.measure.bind(
-                performance,
-                measureName,
-                reusableComponentOptions,
-              ),
-            );
-          } else {
-            performance.measure(measureName, reusableComponentOptions);
-          }
-          performance.clearMeasures(measureName);
-        } else {
-          if (debugTask != null) {
-            debugTask.run(
-              // $FlowFixMe[method-unbinding]
-              console.timeStamp.bind(
-                console,
-                name,
-                startTime,
-                endTime,
-                COMPONENTS_TRACK,
-                undefined,
-                color,
-              ),
-            );
-          } else {
-            console.timeStamp(
-              name,
-              startTime,
-              endTime,
-              COMPONENTS_TRACK,
-              undefined,
-              color,
-            );
-          }
-        }
-      } else {
-        if (debugTask != null) {
-          debugTask.run(
-            // $FlowFixMe[method-unbinding]
-            console.timeStamp.bind(
-              console,
-              name,
-              startTime,
-              endTime,
-              COMPONENTS_TRACK,
-              undefined,
-              color,
-            ),
-          );
-        } else {
-          console.timeStamp(
+          // const measureName = '\u200b' + name; // TODO use measureName instead of name? what is the purpose of the invisible space at the start?
+          currentTrackingService.createFinishedSpan(
+            // measureName,
             name,
+            'ReactComponent',
             startTime,
             endTime,
-            COMPONENTS_TRACK,
-            undefined,
-            color,
+            {
+              knownAdditionalData: {
+                isDeeplyEqualAndUserShouldSeeWarning,
+                changedPropertyEntries: properties,
+              },
+            },
           );
+          // reusableComponentDevToolDetails.properties = properties;
+          // reusableComponentOptions.start = startTime;
+          // reusableComponentOptions.end = endTime;
+          //
+          // const measureName = '\u200b' + name;
+          // if (debugTask != null) {
+          //   debugTask.run(
+          //     // $FlowFixMe[method-unbinding]
+          //     performance.measure.bind(
+          //       performance,
+          //       measureName,
+          //       reusableComponentOptions,
+          //     ),
+          //   );
+          // } else {
+          //   performance.measure(measureName, reusableComponentOptions);
+          // }
+          // performance.clearMeasures(measureName);
+        } else {
+          currentTrackingService.createFinishedSpan(
+            name,
+            'ReactComponent',
+            startTime,
+            endTime,
+          )
+          // if (debugTask != null) {
+          //   debugTask.run(
+          //     // $FlowFixMe[method-unbinding]
+          //     console.timeStamp.bind(
+          //       console,
+          //       name,
+          //       startTime,
+          //       endTime,
+          //       COMPONENTS_TRACK,
+          //       undefined,
+          //       color,
+          //     ),
+          //   );
+          // } else {
+          //   console.timeStamp(
+          //     name,
+          //     startTime,
+          //     endTime,
+          //     COMPONENTS_TRACK,
+          //     undefined,
+          //     color,
+          //   );
+          // }
         }
+      } else {
+        currentTrackingService.createFinishedSpan(
+          name,
+          'ReactComponent',
+          startTime,
+          endTime,
+        )
+        // if (debugTask != null) {
+        //   debugTask.run(
+        //     // $FlowFixMe[method-unbinding]
+        //     console.timeStamp.bind(
+        //       console,
+        //       name,
+        //       startTime,
+        //       endTime,
+        //       COMPONENTS_TRACK,
+        //       undefined,
+        //       color,
+        //     ),
+        //   );
+        // } else {
+        //   console.timeStamp(
+        //     name,
+        //     startTime,
+        //     endTime,
+        //     COMPONENTS_TRACK,
+        //     undefined,
+        //     color,
+        //   );
+        // }
       }
     }
   }

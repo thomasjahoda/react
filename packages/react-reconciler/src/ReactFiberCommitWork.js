@@ -4135,6 +4135,7 @@ function commitPassiveMountOnFiber(
     if (isMount) {
       // Log the mount in the render phase.
       const startTime = ((finishedWork.actualStartTime: any): number);
+      // TODO replace 0.05 with some lower threshold to find out what exactly is rendering so much under react-router?
       if (startTime >= 0 && endTime - startTime > 0.05) {
         logComponentMount(finishedWork, startTime, endTime);
       }
