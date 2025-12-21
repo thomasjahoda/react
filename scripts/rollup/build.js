@@ -57,6 +57,7 @@ const {
   BUN_DEV,
   BUN_PROD,
   FB_WWW_DEV,
+  FB_WWW_FORCED_DEV,
   FB_WWW_PROD,
   FB_WWW_PROFILING,
   RN_OSS_DEV,
@@ -231,6 +232,7 @@ function getFormat(bundleType) {
     case BUN_DEV:
     case BUN_PROD:
     case FB_WWW_DEV:
+    case FB_WWW_FORCED_DEV:
     case FB_WWW_PROD:
     case FB_WWW_PROFILING:
     case RN_OSS_DEV:
@@ -258,6 +260,7 @@ function isProductionBundleType(bundleType) {
     case NODE_DEV:
     case BUN_DEV:
     case FB_WWW_DEV:
+    case FB_WWW_FORCED_DEV:
     case RN_OSS_DEV:
     case RN_FB_DEV:
       return false;
@@ -284,6 +287,7 @@ function isProfilingBundleType(bundleType) {
   switch (bundleType) {
     case NODE_ES2015:
     case FB_WWW_DEV:
+    case FB_WWW_FORCED_DEV:
     case FB_WWW_PROD:
     case NODE_DEV:
     case NODE_PROD:
@@ -312,6 +316,7 @@ function isProfilingBundleType(bundleType) {
 function getBundleTypeFlags(bundleType) {
   const isFBWWWBundle =
     bundleType === FB_WWW_DEV ||
+    bundleType === FB_WWW_FORCED_DEV ||
     bundleType === FB_WWW_PROD ||
     bundleType === FB_WWW_PROFILING;
   const isRNBundle =
@@ -846,6 +851,7 @@ async function buildEverything() {
       [bundle, BUN_DEV],
       [bundle, BUN_PROD],
       [bundle, FB_WWW_DEV],
+      [bundle, FB_WWW_FORCED_DEV],
       [bundle, FB_WWW_PROD],
       [bundle, FB_WWW_PROFILING],
       [bundle, RN_OSS_DEV],

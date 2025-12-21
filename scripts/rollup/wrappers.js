@@ -12,6 +12,7 @@ const {
   BUN_DEV,
   BUN_PROD,
   FB_WWW_DEV,
+  FB_WWW_FORCED_DEV,
   FB_WWW_PROD,
   FB_WWW_PROFILING,
   RN_OSS_DEV,
@@ -106,6 +107,17 @@ ${source}
 
   /****************** FB_WWW_DEV ******************/
   [FB_WWW_DEV](source, globalName, filename, moduleType) {
+    return `'use strict';
+
+if (__DEV__) {
+  (function() {
+${source}
+  })();
+}`;
+  },
+
+  /****************** FB_WWW_DEV ******************/
+  [FB_WWW_FORCED_DEV](source, globalName, filename, moduleType) {
     return `'use strict';
 
 if (__DEV__) {
@@ -212,6 +224,22 @@ Object.defineProperty(module.exports, "__esModule", { value: true });
 
   /***************** FB_WWW_DEV (reconciler only) *****************/
   [FB_WWW_DEV](source, globalName, filename, moduleType) {
+    return `'use strict';
+
+if (__DEV__) {
+  module.exports = function $$$reconciler($$$config) {
+    var exports = {};
+${source}
+    return exports;
+  };
+  module.exports.default = module.exports;
+  Object.defineProperty(module.exports, "__esModule", { value: true });
+}
+`;
+  },
+
+  /***************** FB_WWW_FORCED_DEV (reconciler only) *****************/
+  [FB_WWW_FORCED_DEV](source, globalName, filename, moduleType) {
     return `'use strict';
 
 if (__DEV__) {
@@ -373,6 +401,20 @@ ${license}
 ${source}`;
   },
 
+  /****************** FB_WWW_FORCED_DEV ******************/
+  [FB_WWW_FORCED_DEV](source, globalName, filename, moduleType) {
+    return `/**
+${license}
+ *
+ * @noflow
+ * @nolint
+ * @preventMunge
+ * @preserve-invariant-messages
+ */
+
+${source}`;
+  },
+
   /****************** FB_WWW_PROD ******************/
   [FB_WWW_PROD](source, globalName, filename, moduleType) {
     return `/**
@@ -517,6 +559,7 @@ function wrapWithTopLevelDefinitions(
       case NODE_DEV:
       case NODE_PROFILING:
       case FB_WWW_DEV:
+      case FB_WWW_FORCED_DEV:
       case FB_WWW_PROFILING:
       case RN_OSS_DEV:
       case RN_OSS_PROFILING:

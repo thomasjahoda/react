@@ -6,6 +6,7 @@ const inlinedHostConfigs = require('../shared/inlinedHostConfigs');
 
 const {
   FB_WWW_DEV,
+  FB_WWW_FORCED_DEV,
   FB_WWW_PROD,
   FB_WWW_PROFILING,
   RN_OSS_DEV,
@@ -105,6 +106,7 @@ const forks = Object.freeze({
     ) {
       if (
         bundleType === FB_WWW_DEV ||
+        bundleType === FB_WWW_FORCED_DEV ||
         bundleType === FB_WWW_PROD ||
         bundleType === FB_WWW_PROFILING
       ) {
@@ -170,6 +172,7 @@ const forks = Object.freeze({
           case RN_FB_PROFILING:
             return './packages/shared/forks/ReactFeatureFlags.test-renderer.native-fb.js';
           case FB_WWW_DEV:
+          case FB_WWW_FORCED_DEV:
           case FB_WWW_PROD:
           case FB_WWW_PROFILING:
             return './packages/shared/forks/ReactFeatureFlags.test-renderer.www.js';
@@ -178,6 +181,7 @@ const forks = Object.freeze({
       default:
         switch (bundleType) {
           case FB_WWW_DEV:
+          case FB_WWW_FORCED_DEV:
           case FB_WWW_PROD:
           case FB_WWW_PROFILING:
             return './packages/shared/forks/ReactFeatureFlags.www.js';
@@ -197,6 +201,7 @@ const forks = Object.freeze({
   ) => {
     switch (bundleType) {
       case FB_WWW_DEV:
+      case FB_WWW_FORCED_DEV:
       case FB_WWW_PROD:
       case FB_WWW_PROFILING:
         return './packages/scheduler/src/forks/SchedulerFeatureFlags.www.js';
@@ -442,6 +447,7 @@ const forks = Object.freeze({
   ) => {
     switch (bundleType) {
       case FB_WWW_DEV:
+      case FB_WWW_FORCED_DEV:
       case FB_WWW_PROD:
       case FB_WWW_PROFILING:
         if (__EXPERIMENTAL__) {
