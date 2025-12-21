@@ -6,8 +6,7 @@ node ./scripts/rollup/build.js --release-channel=stable --type=NODE_DEV,NODE_PRO
 
 And publishing it:
 ```
-node ./publish.js --onlyPackages react,react-dom --tags latest
-node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest
+node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest --publishVersion 19.3.0-2
 ```
 
 Whatever stuff
