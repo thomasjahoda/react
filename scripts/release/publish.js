@@ -117,8 +117,8 @@ const run = async () => {
           continue;
         }
       }
-      await updateStableVersionNumbers(params);
-      await printFollowUpInstructions(params);
+      // await updateStableVersionNumbers(params);
+      // await printFollowUpInstructions(params);
     }
   } catch (error) {
     handleError(error);
