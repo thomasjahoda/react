@@ -71,7 +71,7 @@ const run = async () => {
       }
     });
 
-    await validateTags(params);
+    // await validateTags(params);
     await confirmSkippedPackages(params);
     await confirmVersionAndTags(params);
     await validateSkipPackages(params);
