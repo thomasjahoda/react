@@ -1,18 +1,26 @@
 # My Fork Notes
-Build just what I forked (react and react-dom):
+I removed many unnecessary bundle targets from `scripts/rollup/bundles.js` so the build is much faster and actually works.
+I also removed lots of react-server stuff to make the build faster.
+
+How to build: (basically only what I forked, react and react-dom)
 ```
 node ./scripts/rollup/build.js --release-channel=stable --type=NODE_DEV,NODE_PROD
 ```
 
-And publishing it:
+How to publish:
 ```
 node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest --publishVersion 19.3.0-2
 ```
 
-Whatever stuff
+Either just copy over some files manually or
 ```
-# meh, that command does something additionally which kinda sucks, idk what this is for (moving into oss-stable-semver folder)
-yarn build react,react-dom,react-dom/client --release-channel=stable --type=NODE_DEV,NODE_PROD
+rm node_modules/@thomasjahoda-forks/react-dom/cjs/react-dom.development.js
+rm node_modules/@thomasjahoda-forks/react-dom/cjs/react-dom-client.development.js
+cp /Users/thomas/dev/external/react/build/node_modules/react-dom/cjs/react-dom.development.js node_modules/@thomasjahoda-forks/react-dom/cjs/react-dom.development.js
+cp /Users/thomas/dev/external/react/build/node_modules/react-dom/cjs/react-dom-client.development.js node_modules/@thomasjahoda-forks/react-dom/cjs/react-dom-client.development.js
+
+rm node_modules/@thomasjahoda-forks/react/cjs/react.development.js
+cp /Users/thomas/dev/external/react/build/node_modules/react/cjs/react.development.js node_modules/@thomasjahoda-forks/react/cjs/react.development.js
 ```
 
 # [React](https://react.dev/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebook/react/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/react.svg?style=flat)](https://www.npmjs.com/package/react) [![(Runtime) Build and Test](https://github.com/facebook/react/actions/workflows/runtime_build_and_test.yml/badge.svg)](https://github.com/facebook/react/actions/workflows/runtime_build_and_test.yml) [![(Compiler) TypeScript](https://github.com/facebook/react/actions/workflows/compiler_typescript.yml/badge.svg?branch=main)](https://github.com/facebook/react/actions/workflows/compiler_typescript.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://legacy.reactjs.org/docs/how-to-contribute.html#your-first-pull-request)
