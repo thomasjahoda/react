@@ -17,7 +17,6 @@ const bundleTypes = {
   BUN_DEV: 'BUN_DEV',
   BUN_PROD: 'BUN_PROD',
   FB_WWW_DEV: 'FB_WWW_DEV',
-  FB_WWW_FORCED_DEV: 'FB_WWW_FORCED_DEV',
   FB_WWW_PROD: 'FB_WWW_PROD',
   FB_WWW_PROFILING: 'FB_WWW_PROFILING',
   RN_OSS_DEV: 'RN_OSS_DEV',
@@ -41,7 +40,6 @@ const {
   BUN_DEV,
   BUN_PROD,
   FB_WWW_DEV,
-  FB_WWW_FORCED_DEV,
   FB_WWW_PROD,
   FB_WWW_PROFILING,
   RN_OSS_DEV,
@@ -75,7 +73,6 @@ const bundles = [
       NODE_DEV,
       NODE_PROD,
       FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
       FB_WWW_PROD,
       FB_WWW_PROFILING,
       RN_FB_DEV,
@@ -153,7 +150,6 @@ const bundles = [
       NODE_PROD,
       NODE_PROFILING,
       FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
       FB_WWW_PROD,
       FB_WWW_PROFILING,
       RN_FB_DEV,
@@ -216,7 +212,7 @@ const bundles = [
 
   /******* React DOM (www) *******/
   {
-    bundleTypes: [FB_WWW_DEV, FB_WWW_FORCED_DEV, FB_WWW_PROD, FB_WWW_PROFILING],
+    bundleTypes: [FB_WWW_DEV, FB_WWW_PROD, FB_WWW_PROFILING],
     moduleType: RENDERER,
     entry: 'react-dom/src/ReactDOMFB.js',
     global: 'ReactDOM',
@@ -307,7 +303,7 @@ const bundles = [
   /******* React DOM - www - Testing *******/
   {
     moduleType: RENDERER,
-    bundleTypes: [FB_WWW_DEV, FB_WWW_FORCED_DEV, FB_WWW_PROD],
+    bundleTypes: [FB_WWW_DEV, FB_WWW_PROD],
     entry: 'react-dom/src/ReactDOMTestingFB.js',
     global: 'ReactDOMTesting',
     minifyWithProdErrorCodes: true,
@@ -317,13 +313,7 @@ const bundles = [
 
   /******* React DOM Server *******/
   {
-    bundleTypes: [
-      NODE_DEV,
-      NODE_PROD,
-      FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
-      FB_WWW_PROD,
-    ],
+    bundleTypes: [NODE_DEV, NODE_PROD, FB_WWW_DEV, FB_WWW_PROD],
     moduleType: RENDERER,
     entry: 'react-dom/src/server/ReactDOMLegacyServerBrowser.js',
     name: 'react-dom-server-legacy.browser',
@@ -383,9 +373,7 @@ const bundles = [
     ],
   },
   {
-    bundleTypes: __EXPERIMENTAL__
-      ? [FB_WWW_DEV, FB_WWW_FORCED_DEV, FB_WWW_PROD]
-      : [],
+    bundleTypes: __EXPERIMENTAL__ ? [FB_WWW_DEV, FB_WWW_PROD] : [],
     moduleType: RENDERER,
     entry: 'react-server-dom-fb/src/ReactDOMServerFB.js',
     global: 'ReactDOMServerStreaming',
@@ -838,13 +826,7 @@ const bundles = [
 
   /******* React ART *******/
   {
-    bundleTypes: [
-      NODE_DEV,
-      NODE_PROD,
-      FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
-      FB_WWW_PROD,
-    ],
+    bundleTypes: [NODE_DEV, NODE_PROD, FB_WWW_DEV, FB_WWW_PROD],
     moduleType: RENDERER,
     entry: 'react-art',
     global: 'ReactART',
@@ -904,7 +886,6 @@ const bundles = [
   {
     bundleTypes: [
       FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
       NODE_DEV,
       NODE_PROD,
       RN_FB_DEV,
@@ -998,14 +979,7 @@ const bundles = [
 
   /******* React Reconciler *******/
   {
-    bundleTypes: [
-      NODE_DEV,
-      NODE_PROD,
-      NODE_PROFILING,
-      FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
-      FB_WWW_PROD,
-    ],
+    bundleTypes: [NODE_DEV, NODE_PROD, NODE_PROFILING, FB_WWW_DEV, FB_WWW_PROD],
     moduleType: RECONCILER,
     entry: 'react-reconciler',
     global: 'ReactReconciler',
@@ -1062,13 +1036,7 @@ const bundles = [
   /******* Reconciler Constants *******/
   {
     moduleType: RENDERER_UTILS,
-    bundleTypes: [
-      NODE_DEV,
-      NODE_PROD,
-      FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
-      FB_WWW_PROD,
-    ],
+    bundleTypes: [NODE_DEV, NODE_PROD, FB_WWW_DEV, FB_WWW_PROD],
     entry: 'react-reconciler/constants',
     global: 'ReactReconcilerConstants',
     minifyWithProdErrorCodes: true,
@@ -1082,7 +1050,6 @@ const bundles = [
       NODE_DEV,
       NODE_PROD,
       FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
       FB_WWW_PROD,
       RN_FB_DEV,
       RN_FB_PROD,
@@ -1109,13 +1076,7 @@ const bundles = [
 
   /******* React Cache (experimental, old) *******/
   {
-    bundleTypes: [
-      NODE_DEV,
-      NODE_PROD,
-      FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
-      FB_WWW_PROD,
-    ],
+    bundleTypes: [NODE_DEV, NODE_PROD, FB_WWW_DEV, FB_WWW_PROD],
     moduleType: ISOMORPHIC,
     entry: 'react-cache',
     global: 'ReactCacheOld',
@@ -1196,7 +1157,6 @@ const bundles = [
       NODE_DEV,
       NODE_PROD,
       FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
       FB_WWW_PROD,
       FB_WWW_PROFILING,
       RN_FB_DEV,
@@ -1217,7 +1177,6 @@ const bundles = [
       NODE_DEV,
       NODE_PROD,
       FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
       FB_WWW_PROD,
       RN_FB_DEV,
       RN_FB_PROD,
@@ -1247,7 +1206,6 @@ const bundles = [
       NODE_DEV,
       NODE_PROD,
       FB_WWW_DEV,
-      FB_WWW_FORCED_DEV,
       FB_WWW_PROD,
       FB_WWW_PROFILING,
     ],
@@ -1309,7 +1267,7 @@ const bundles = [
     externals: [],
   },
   {
-    bundleTypes: [NODE_DEV, NODE_PROD, FB_WWW_DEV, FB_WWW_FORCED_DEV],
+    bundleTypes: [NODE_DEV, NODE_PROD, FB_WWW_DEV],
     moduleType: ISOMORPHIC,
     entry: 'react-refresh/runtime',
     global: 'ReactFreshRuntime',

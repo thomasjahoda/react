@@ -57,10 +57,6 @@
       "react-server": "./client.react-server.js",
       "default": "./client.js"
     },
-    "./client-forced-dev": {
-      "react-server": "./client.react-server.js",
-      "default": "./client-forced-dev.js"
-    },
     "./server": {
       "react-server": "./server.react-server.js",
       "workerd": "./server.edge.js",

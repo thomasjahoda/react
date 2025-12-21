@@ -25,7 +25,6 @@ const {
   BUN_DEV,
   BUN_PROD,
   FB_WWW_DEV,
-  FB_WWW_FORCED_DEV,
   FB_WWW_PROD,
   FB_WWW_PROFILING,
   RN_OSS_DEV,
@@ -63,7 +62,6 @@ function getBundleOutputPath(bundle, bundleType, filename, packageName) {
     case CJS_DTS:
       return `build/node_modules/${packageName}/cjs/${filename}`;
     case FB_WWW_DEV:
-    case FB_WWW_FORCED_DEV:
     case FB_WWW_PROD:
     case FB_WWW_PROFILING:
       return `build/facebook-www/${filename}`;
@@ -164,10 +162,7 @@ for (const bundle of Bundles.bundles) {
   if (!hasBundle) {
     const hasNonFBBundleTypes = bundle.bundleTypes.some(
       type =>
-        type !== FB_WWW_DEV &&
-        type !== FB_WWW_FORCED_DEV &&
-        type !== FB_WWW_PROD &&
-        type !== FB_WWW_PROFILING
+        type !== FB_WWW_DEV && type !== FB_WWW_PROD && type !== FB_WWW_PROFILING
     );
     entryPointsToHasBundle.set(bundle.entry, hasNonFBBundleTypes);
   }
