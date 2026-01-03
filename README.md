@@ -4,7 +4,9 @@ I also removed lots of react-server stuff to make the build faster.
 
 How to build: (basically only what I forked, react and react-dom)
 ```
-node ./scripts/rollup/build.js --release-channel=stable --type=NODE_DEV,NODE_PROD
+yarn run custom-build
+# # WARNING: execute this in the TERMINAL, not via IntelliJ!
+# node ./scripts/rollup/build.js --release-channel=stable --type=NODE_DEV,NODE_PROD
 ```
 
 How to publish:
@@ -21,6 +23,13 @@ cp /Users/thomas/dev/external/react/build/node_modules/react-dom/cjs/react-dom-c
 
 rm node_modules/@thomasjahoda-forks/react/cjs/react.development.js
 cp /Users/thomas/dev/external/react/build/node_modules/react/cjs/react.development.js node_modules/@thomasjahoda-forks/react/cjs/react.development.js
+```
+
+## Setup
+See https://legacy.reactjs.org/docs/how-to-contribute.html.
+Basically:
+```
+yarn install
 ```
 
 # [React](https://react.dev/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebook/react/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/react.svg?style=flat)](https://www.npmjs.com/package/react) [![(Runtime) Build and Test](https://github.com/facebook/react/actions/workflows/runtime_build_and_test.yml/badge.svg)](https://github.com/facebook/react/actions/workflows/runtime_build_and_test.yml) [![(Compiler) TypeScript](https://github.com/facebook/react/actions/workflows/compiler_typescript.yml/badge.svg?branch=main)](https://github.com/facebook/react/actions/workflows/compiler_typescript.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://legacy.reactjs.org/docs/how-to-contribute.html#your-first-pull-request)
