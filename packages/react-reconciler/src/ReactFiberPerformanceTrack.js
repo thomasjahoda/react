@@ -9,9 +9,9 @@
 
 /* eslint-disable react-internal/no-production-logging */
 
-import type { Fiber } from './ReactInternalTypes';
+import type {Fiber} from './ReactInternalTypes';
 
-import type { Lanes } from './ReactFiberLane';
+import type {Lanes} from './ReactFiberLane';
 import {
   getGroupNameOfHighestPriorityLane,
   includesOnlyHydrationLanes,
@@ -20,9 +20,9 @@ import {
   includesSomeLane,
 } from './ReactFiberLane';
 
-import type { CapturedValue } from './ReactCapturedValue';
+import type {CapturedValue} from './ReactCapturedValue';
 
-import { SuspenseComponent } from './ReactWorkTags';
+import {SuspenseComponent} from './ReactWorkTags';
 
 import getComponentNameFromFiber from './getComponentNameFromFiber';
 
@@ -32,7 +32,10 @@ import {
   addValueToProperties,
 } from 'shared/ReactPerformanceTrackProperties';
 
-import { enablePerformanceIssueReporting, enableProfilerTimer, } from 'shared/ReactFeatureFlags';
+import {
+  enablePerformanceIssueReporting,
+  enableProfilerTimer,
+} from 'shared/ReactFeatureFlags';
 
 const supportsUserTiming =
   enableProfilerTimer &&
@@ -56,6 +59,12 @@ export function setCurrentTrackFromLanes(lanes: Lanes): void {
 export function markAllLanesInOrder() {
   // will be called as setup
   currentTrackingService = getPerformanceTrackingServiceFromGlobalIfTracking();
+  if (currentTrackingService !== undefined) {
+    // $FlowFixMe
+    const opts = currentTrackingService.getReactProfilingOptions();
+    // $FlowFixMe
+    currentTrackingServiceOpts_diffPropsOnUpdate = opts.diffPropsOnUpdate;
+  }
 
   // if (supportsUserTiming) {
   //   // Ensure we create all tracks in priority order. Currently performance.mark() are in
@@ -107,11 +116,14 @@ export function markAllLanesInOrder() {
   // }
 }
 
+export type ReactProfilingOptions = {
+  diffPropsOnUpdate?: boolean,
+};
 export type PerformanceTrackingService = {
   startSpan: (
     name: string,
     type: string,
-    options: { syncSourceSpanId?: string, knownAdditionalData?: any },
+    options: {syncSourceSpanId?: string, knownAdditionalData?: any},
   ) => string,
   createFinishedSpan: (
     name: string,
@@ -125,12 +137,14 @@ export type PerformanceTrackingService = {
     },
   ) => string,
   isTracking: boolean,
+  getReactProfilingOptions: () => ReactProfilingOptions,
 };
 
 function getPerformanceTrackingServiceFromGlobalIfTracking(): ?PerformanceTrackingService {
   const service: ?PerformanceTrackingService =
     // $FlowFixMe
     globalThis.__reactPerformanceTrackingOverride;
+  // $FlowFixMe
   if (service !== undefined && service.isTracking) {
     return service;
   } else {
@@ -139,6 +153,7 @@ function getPerformanceTrackingServiceFromGlobalIfTracking(): ?PerformanceTracki
 }
 
 let currentTrackingService: ?PerformanceTrackingService = undefined;
+let currentTrackingServiceOpts_diffPropsOnUpdate: boolean = false;
 
 function logComponentTrigger(
   fiber: Fiber,
@@ -148,7 +163,13 @@ function logComponentTrigger(
 ) {
   if (supportsUserTiming) {
     if (currentTrackingService !== undefined) {
-      currentTrackingService.createFinishedSpan(trigger, 'ReactComponent', startTime, endTime);
+      // $FlowFixMe
+currentTrackingService.createFinishedSpan(
+        trigger,
+        'ReactComponent',
+        startTime,
+        endTime,
+      );
     }
     // reusableComponentOptions.start = startTime;
     // reusableComponentOptions.end = endTime;
@@ -291,6 +312,7 @@ export function logComponentRender(
             : 'error';
 
     if (!__DEV__) {
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         name,
         'ReactComponent',
@@ -308,6 +330,7 @@ export function logComponentRender(
       // const debugTask = fiber._debugTask;
 
       if (
+        currentTrackingServiceOpts_diffPropsOnUpdate &&
         props !== null &&
         alternate !== null &&
         alternate.memoizedProps !== props
@@ -346,6 +369,7 @@ export function logComponentRender(
             // reusableComponentDevToolDetails.tooltipText = name;
           }
           // const measureName = '\u200b' + name; // TODO use measureName instead of name? what is the purpose of the invisible space at the start?
+          // $FlowFixMe
           currentTrackingService.createFinishedSpan(
             // measureName,
             name,
@@ -379,12 +403,13 @@ export function logComponentRender(
           // }
           // performance.clearMeasures(measureName);
         } else {
+          // $FlowFixMe
           currentTrackingService.createFinishedSpan(
             name,
             'ReactComponent',
             startTime,
             endTime,
-          )
+          );
           // if (debugTask != null) {
           //   debugTask.run(
           //     // $FlowFixMe[method-unbinding]
@@ -410,12 +435,13 @@ export function logComponentRender(
           // }
         }
       } else {
+        // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           name,
           'ReactComponent',
           startTime,
           endTime,
-        )
+        );
         // if (debugTask != null) {
         //   debugTask.run(
         //     // $FlowFixMe[method-unbinding]
@@ -466,12 +492,12 @@ export function logComponentErrored(
         const error = capturedValue.value;
         const message =
           typeof error === 'object' &&
-            error !== null &&
-            typeof error.message === 'string'
+          error !== null &&
+          typeof error.message === 'string'
             ? // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error.message)
+              String(error.message)
             : // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error);
+              String(error);
         properties.push(['Error', message]);
       }
       if (fiber.key !== null) {
@@ -481,6 +507,7 @@ export function logComponentErrored(
         addObjectToProperties(fiber.memoizedProps, properties, 0, '');
       }
 
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         name,
         'ReactComponent',
@@ -500,6 +527,7 @@ export function logComponentErrored(
         },
       );
     } else {
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         name,
         'ReactComponent',
@@ -539,12 +567,12 @@ function logComponentEffectErrored(
         const error = capturedValue.value;
         const message =
           typeof error === 'object' &&
-            error !== null &&
-            typeof error.message === 'string'
+          error !== null &&
+          typeof error.message === 'string'
             ? // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error.message)
+              String(error.message)
             : // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error);
+              String(error);
         properties.push(['Error', message]);
       }
       if (fiber.key !== null) {
@@ -553,6 +581,7 @@ function logComponentEffectErrored(
       if (fiber.memoizedProps !== null) {
         addObjectToProperties(fiber.memoizedProps, properties, 0, '');
       }
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         name,
         'ReactComponent',
@@ -569,6 +598,7 @@ function logComponentEffectErrored(
         },
       );
     } else {
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         name,
         'ReactComponent',
@@ -614,6 +644,7 @@ export function logComponentEffect(
           : selfTime < 500
             ? 'secondary-dark'
             : 'error';
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       name,
       'ReactComponent',
@@ -653,6 +684,7 @@ export function logYieldTime(startTime: number, endTime: number): void {
     // hanging by themselves without context. It's a useful indicator for why something
     // might be starving this render though.
     // TODO: Considering adding these to a queue and only logging them if we commit.
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Blocked',
       'ReactComponent',
@@ -677,6 +709,7 @@ export function logSuspendedYieldTime(
     return;
   }
   if (supportsUserTiming) {
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Suspended',
       'ReactComponent',
@@ -701,6 +734,7 @@ export function logActionYieldTime(
     return;
   }
   if (supportsUserTiming) {
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Action',
       'ReactComponent',
@@ -755,6 +789,7 @@ export function logBlockingStart(
     if (eventType !== null && updateTime > eventTime) {
       // Log the time from the event timeStamp until we called setState.
       const color = eventIsRepeat ? 'secondary-light' : 'warning';
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         eventIsRepeat ? 'Consecutive' : 'Event: ' + eventType,
         'ReactScheduler',
@@ -792,6 +827,7 @@ export function logBlockingStart(
         if (updateMethodName != null) {
           properties.push(['Method name', updateMethodName]);
         }
+        // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           label,
           'ReactScheduler',
@@ -811,6 +847,7 @@ export function logBlockingStart(
           },
         );
       } else {
+        // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           label,
           'ReactScheduler',
@@ -864,6 +901,7 @@ export function logGestureStart(
     if (updateTime > eventTime && eventType !== null) {
       // Log the time from the event timeStamp until we started a gesture.
       const color = eventIsRepeat ? 'secondary-light' : 'warning';
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         eventIsRepeat ? 'Consecutive' : 'Event: ' + eventType,
         'ReactScheduler',
@@ -893,6 +931,7 @@ export function logGestureStart(
         if (updateMethodName != null) {
           properties.push(['Method name', updateMethodName]);
         }
+        // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           label,
           'ReactScheduler',
@@ -908,6 +947,7 @@ export function logGestureStart(
           },
         );
       } else {
+        // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           label,
           'ReactScheduler',
@@ -969,6 +1009,7 @@ export function logTransitionStart(
     if (startTime > eventTime && eventType !== null) {
       // Log the time from the event timeStamp until we started a transition.
       const color = eventIsRepeat ? 'secondary-light' : 'warning';
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         eventIsRepeat ? 'Consecutive' : 'Event: ' + eventType,
         'ReactScheduler',
@@ -986,6 +1027,7 @@ export function logTransitionStart(
     if (updateTime > startTime) {
       // Log the time from when we started an async transition until we called setState or started rendering.
       // TODO: Ideally this would use the debugTask of the startTransition call perhaps.
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         'Action',
         'ReactScheduler',
@@ -1015,6 +1057,7 @@ export function logTransitionStart(
         if (updateMethodName != null) {
           properties.push(['Method name', updateMethodName]);
         }
+        // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           label,
           'ReactScheduler',
@@ -1030,6 +1073,7 @@ export function logTransitionStart(
           },
         );
       } else {
+        // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           label,
           'ReactScheduler',
@@ -1069,6 +1113,7 @@ export function logRenderPhase(
       : includesOnlyHydrationLanes(lanes)
         ? 'Hydrated'
         : 'Render';
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       label,
       'ReactScheduler',
@@ -1106,6 +1151,7 @@ export function logInterruptedRenderPhase(
       : includesOnlyHydrationLanes(lanes)
         ? 'Interrupted Hydration'
         : 'Interrupted Render';
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       label,
       'ReactScheduler',
@@ -1138,6 +1184,7 @@ export function logSuspendedRenderPhase(
     const color = includesOnlyHydrationOrOffscreenLanes(lanes)
       ? 'tertiary-dark'
       : 'primary-dark';
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Prewarm',
       'ReactScheduler',
@@ -1171,6 +1218,7 @@ export function logSuspendedWithDelayPhase(
     const color = includesOnlyHydrationOrOffscreenLanes(lanes)
       ? 'tertiary-dark'
       : 'primary-dark';
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Suspended',
       'ReactScheduler',
@@ -1209,14 +1257,15 @@ export function logRecoveredRenderPhase(
         const error = capturedValue.value;
         const message =
           typeof error === 'object' &&
-            error !== null &&
-            typeof error.message === 'string'
+          error !== null &&
+          typeof error.message === 'string'
             ? // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error.message)
+              String(error.message)
             : // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error);
+              String(error);
         properties.push(['Recoverable Error', message]);
       }
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         'Recovered',
         'ReactScheduler',
@@ -1235,6 +1284,7 @@ export function logRecoveredRenderPhase(
         },
       );
     } else {
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         'Recovered',
         'ReactScheduler',
@@ -1265,6 +1315,7 @@ export function logErroredRenderPhase(
     if (endTime <= startTime) {
       return;
     }
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Errored',
       'ReactScheduler',
@@ -1294,6 +1345,7 @@ export function logInconsistentRender(
     if (endTime <= startTime) {
       return;
     }
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Teared Render',
       'ReactScheduler',
@@ -1327,6 +1379,7 @@ export function logSuspendedCommitPhase(
     }
     // TODO: Include the exact reason and URLs of what resources suspended.
     // TODO: This might also be Suspended while waiting on a View Transition.
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       reason,
       'ReactScheduler',
@@ -1359,6 +1412,7 @@ export function logSuspendedViewTransitionPhase(
     }
     // TODO: Include the exact reason and URLs of what resources suspended.
     // TODO: This might also be Suspended while waiting on a View Transition.
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       reason,
       'ReactScheduler',
@@ -1396,14 +1450,15 @@ export function logCommitErrored(
         const error = capturedValue.value;
         const message =
           typeof error === 'object' &&
-            error !== null &&
-            typeof error.message === 'string'
+          error !== null &&
+          typeof error.message === 'string'
             ? // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error.message)
+              String(error.message)
             : // eslint-disable-next-line react-internal/safe-string-coercion
-            String(error);
+              String(error);
         properties.push(['Error', message]);
       }
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         'Errored',
         'ReactScheduler',
@@ -1414,13 +1469,16 @@ export function logCommitErrored(
             color: 'error',
             track: currentTrack,
             // trackGroup: LANES_TRACK_GROUP,
-            tooltipText: passive ? 'Remaining Effects Errored' : 'Commit Errored',
+            tooltipText: passive
+              ? 'Remaining Effects Errored'
+              : 'Commit Errored',
             properties,
           },
           error: true,
         },
       );
     } else {
+      // $FlowFixMe
       currentTrackingService.createFinishedSpan(
         'Errored',
         'ReactScheduler',
@@ -1457,6 +1515,7 @@ export function logCommitPhase(
     if (endTime <= startTime) {
       return;
     }
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       abortedViewTransition ? 'Commit Interrupted View Transition' : 'Commit',
       'ReactScheduler',
@@ -1486,6 +1545,7 @@ export function logPaintYieldPhase(
     if (endTime <= startTime) {
       return;
     }
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       delayedUntilPaint ? 'Waiting for Paint' : 'Waiting',
       'ReactScheduler',
@@ -1515,6 +1575,7 @@ export function logStartViewTransitionYieldPhase(
     if (endTime <= startTime) {
       return;
     }
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       abortedViewTransition
         ? 'Interrupted View Transition'
@@ -1545,6 +1606,7 @@ export function logAnimatingPhase(
     if (endTime <= startTime) {
       return;
     }
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Animating',
       'ReactScheduler',
@@ -1578,6 +1640,7 @@ export function logPassiveCommitPhase(
     if (endTime <= startTime) {
       return;
     }
+    // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       'Remaining Effects',
       'ReactScheduler',
