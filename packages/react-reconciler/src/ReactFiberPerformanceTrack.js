@@ -226,16 +226,11 @@ function normalizeReactProfilingOptions(
 function addShallowPropDiffToProperties(
   prev: Object,
   next: Object,
-  properties: Array<[string, string]>,
+  properties: Array<string>,
 ): void {
-  let hasChanges = false;
   for (const key in prev) {
     if (hasOwnProperty.call(prev, key) && !hasOwnProperty.call(next, key)) {
-      if (!hasChanges) {
-        properties.push(['Changed Props', '']);
-        hasChanges = true;
-      }
-      properties.push([key, '']);
+      properties.push(key);
     }
   }
   for (const key in next) {
@@ -243,11 +238,7 @@ function addShallowPropDiffToProperties(
       continue;
     }
     if (!hasOwnProperty.call(prev, key) || !is(prev[key], next[key])) {
-      if (!hasChanges) {
-        properties.push(['Changed Props', '']);
-        hasChanges = true;
-      }
-      properties.push([key, '']);
+      properties.push(key);
     }
   }
 }
@@ -465,8 +456,8 @@ export function logComponentRender(
         alternate !== null &&
         alternate.memoizedProps !== props
       ) {
-        const properties: Array<[string, string]> = [];
         if (currentTrackingServiceOpts_diffPropsOnUpdateMode === 'deep') {
+          const properties: Array<[string, string]> = [];
           // If this is an update, we'll diff the props and emit which ones changed.
           const isDeeplyEqual = addObjectDiffToProperties(
             alternate.memoizedProps,
@@ -474,11 +465,8 @@ export function logComponentRender(
             properties,
             0,
           );
-          if (properties.length > 0) {
-            properties.unshift(['Changed Props', '']);
-          }
           if (
-            properties.length > 1 &&
+            properties.length > 0 &&
             isDeeplyEqual &&
             // !alreadyWarnedForDeepEquality &&
             !includesSomeLane(alternate.lanes, committedLanes) &&
@@ -496,15 +484,19 @@ export function logComponentRender(
             // reusableComponentDevToolDetails.color = 'warning';
             // reusableComponentDevToolDetails.tooltipText = DEEP_EQUALITY_WARNING;
           }
+          if (properties.length > 0) {
+            changedPropertyEntries = properties;
+          }
         } else if (currentTrackingServiceOpts_diffPropsOnUpdateMode === 'shallow') {
+          const properties: Array<string> = [];
           addShallowPropDiffToProperties(
             alternate.memoizedProps,
             props,
             properties,
           );
-        }
-        if (properties.length > 1) {
-          changedPropertyEntries = properties;
+          if (properties.length > 0) {
+            changedPropertyEntries = properties;
+          }
         }
       }
 

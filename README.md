@@ -12,10 +12,11 @@ yarn run custom-build
 How to publish:
 ```
 # WARNING: execute this in the TERMINAL, not via IntelliJ!
-node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest --publishVersion 19.3.0-4
+node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest --publishVersion 19.3.0-5
 ```
 
-Either just copy over some files manually or
+Either just copy over some files manually or execute the following 
+in the project root that is supposed to use the fork (!!!):
 ```
 rm node_modules/@thomasjahoda-forks/react-dom/cjs/react-dom.development.js
 rm node_modules/@thomasjahoda-forks/react-dom/cjs/react-dom-client.development.js

@@ -90,7 +90,7 @@ describe('ReactPerformanceTracks', () => {
       20,
       {
         knownAdditionalData: {
-          changedPropertyEntries: [['Changed Props', ''], ['items', '']],
+          changedPropertyEntries: ['items'],
         },
       },
     ]);
@@ -124,11 +124,7 @@ describe('ReactPerformanceTracks', () => {
       20,
       {
         knownAdditionalData: {
-          changedPropertyEntries: [
-            ['Changed Props', ''],
-            ['– value', '1'],
-            ['+ value', '2'],
-          ],
+          changedPropertyEntries: [['– value', '1'], ['+ value', '2']],
         },
       },
     ]);
