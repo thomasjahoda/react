@@ -9,7 +9,7 @@
 
 /* eslint-disable react-internal/no-production-logging */
 
-import type {Fiber} from './ReactInternalTypes';
+import type {Dependencies, Fiber} from './ReactInternalTypes';
 
 import type {Lanes} from './ReactFiberLane';
 import {
@@ -31,6 +31,8 @@ import {
   addObjectToProperties,
   addValueToProperties,
 } from 'shared/ReactPerformanceTrackProperties';
+import hasOwnProperty from 'shared/hasOwnProperty';
+import is from 'shared/objectIs';
 
 import {
   enablePerformanceIssueReporting,
@@ -59,11 +61,16 @@ export function setCurrentTrackFromLanes(lanes: Lanes): void {
 export function markAllLanesInOrder() {
   // will be called as setup
   currentTrackingService = getPerformanceTrackingServiceFromGlobalIfTracking();
+  currentTrackingServiceOpts_diffPropsOnUpdateMode = 'shallow';
+  currentTrackingServiceOpts_diffContextsOnUpdateMode = false;
   if (currentTrackingService !== undefined) {
-    // $FlowFixMe
-    const opts = currentTrackingService.getReactProfilingOptions();
-    // $FlowFixMe
-    currentTrackingServiceOpts_diffPropsOnUpdate = opts.diffPropsOnUpdate;
+    const opts = normalizeReactProfilingOptions(
+      currentTrackingService.getReactProfilingOptions(),
+    );
+    currentTrackingServiceOpts_diffPropsOnUpdateMode =
+      opts.diffPropsOnUpdateMode;
+    currentTrackingServiceOpts_diffContextsOnUpdateMode =
+      opts.diffContextsOnUpdateMode;
   }
 
   // if (supportsUserTiming) {
@@ -116,8 +123,11 @@ export function markAllLanesInOrder() {
   // }
 }
 
+export type ReactProfilingDiffPropsOnUpdateMode = false | 'deep' | 'shallow';
+export type ReactProfilingDiffContextsOnUpdateMode = false | 'shallow';
 export type ReactProfilingOptions = {
-  diffPropsOnUpdate?: boolean,
+  diffPropsOnUpdateMode?: ReactProfilingDiffPropsOnUpdateMode,
+  diffContextsOnUpdateMode?: ReactProfilingDiffContextsOnUpdateMode,
 };
 export type PerformanceTrackingService = {
   startSpan: (
@@ -153,7 +163,131 @@ function getPerformanceTrackingServiceFromGlobalIfTracking(): ?PerformanceTracki
 }
 
 let currentTrackingService: ?PerformanceTrackingService = undefined;
-let currentTrackingServiceOpts_diffPropsOnUpdate: boolean = false;
+let currentTrackingServiceOpts_diffPropsOnUpdateMode: ReactProfilingDiffPropsOnUpdateMode =
+  'shallow';
+let currentTrackingServiceOpts_diffContextsOnUpdateMode: ReactProfilingDiffContextsOnUpdateMode =
+  'shallow';
+
+function normalizeReactProfilingOptions(
+  opts: mixed,
+): {
+  diffPropsOnUpdateMode: ReactProfilingDiffPropsOnUpdateMode,
+  diffContextsOnUpdateMode: ReactProfilingDiffContextsOnUpdateMode,
+} {
+  if (opts === null || typeof opts !== 'object') {
+    // eslint-disable-next-line react-internal/prod-error-codes
+    throw new Error(
+      'getReactProfilingOptions() must return an object when React performance tracking is enabled.',
+    );
+  }
+
+  const diffPropsOnUpdateMode = opts.diffPropsOnUpdateMode;
+  const diffContextsOnUpdateMode = opts.diffContextsOnUpdateMode;
+  if (
+    diffPropsOnUpdateMode !== undefined &&
+    diffPropsOnUpdateMode !== false &&
+    diffPropsOnUpdateMode !== 'shallow' &&
+    diffPropsOnUpdateMode !== 'deep'
+  ) {
+    // eslint-disable-next-line react-internal/prod-error-codes
+    throw new Error(
+      'getReactProfilingOptions().diffPropsOnUpdateMode must be false, "shallow", or "deep".',
+    );
+  }
+  if (
+    diffContextsOnUpdateMode !== undefined &&
+    diffContextsOnUpdateMode !== false &&
+    diffContextsOnUpdateMode !== 'shallow'
+  ) {
+    // eslint-disable-next-line react-internal/prod-error-codes
+    throw new Error(
+      'getReactProfilingOptions().diffContextsOnUpdateMode must be false or "shallow".',
+    );
+  }
+
+  // eslint-disable-next-line no-for-of-loops/no-for-of-loops
+  for (const key of Object.keys(opts)) {
+    if (key !== 'diffPropsOnUpdateMode' && key !== 'diffContextsOnUpdateMode') {
+      // eslint-disable-next-line react-internal/prod-error-codes
+      throw new Error(
+        `getReactProfilingOptions() must not contain any other keys but was '${key}'.`,
+      );
+    }
+  }
+
+  return {
+    diffPropsOnUpdateMode:
+      diffPropsOnUpdateMode === undefined ? 'shallow' : diffPropsOnUpdateMode,
+    diffContextsOnUpdateMode:
+      diffContextsOnUpdateMode === undefined ? false : diffContextsOnUpdateMode,
+  };
+}
+
+function addShallowPropDiffToProperties(
+  prev: Object,
+  next: Object,
+  properties: Array<[string, string]>,
+): void {
+  let hasChanges = false;
+  for (const key in prev) {
+    if (hasOwnProperty.call(prev, key) && !hasOwnProperty.call(next, key)) {
+      if (!hasChanges) {
+        properties.push(['Changed Props', '']);
+        hasChanges = true;
+      }
+      properties.push([key, '']);
+    }
+  }
+  for (const key in next) {
+    if (!hasOwnProperty.call(next, key)) {
+      continue;
+    }
+    if (!hasOwnProperty.call(prev, key) || !is(prev[key], next[key])) {
+      if (!hasChanges) {
+        properties.push(['Changed Props', '']);
+        hasChanges = true;
+      }
+      properties.push([key, '']);
+    }
+  }
+}
+
+function getChangedContextNames(
+  prevDependencies: Dependencies | null,
+  nextDependencies: Dependencies | null,
+): null | Array<string> {
+  if (prevDependencies === null || nextDependencies === null) {
+    return null;
+  }
+
+  // TODO [current-agent-task] this is really slow. Just iterate over both prevDependencies and nextDependencies at the same time and assume they are in the same order.
+  const previousValues: Map<mixed, mixed> = new Map();
+  let prevDependency = prevDependencies.firstContext;
+  while (prevDependency !== null) {
+    previousValues.set(prevDependency.context, prevDependency.memoizedValue);
+    prevDependency = prevDependency.next;
+  }
+
+  const changedContextNames: Array<string> = [];
+  let nextDependency = nextDependencies.firstContext;
+  while (nextDependency !== null) {
+    const context = nextDependency.context;
+    if (
+      previousValues.has(context) &&
+      !is(previousValues.get(context), nextDependency.memoizedValue)
+    ) {
+      const contextName = context.displayName;
+      if (typeof contextName === 'string') {
+        changedContextNames.push(contextName);
+      } else {
+        changedContextNames.push('<context-without-displayName>');
+      }
+    }
+    nextDependency = nextDependency.next;
+  }
+
+  return changedContextNames.length === 0 ? null : changedContextNames;
+}
 
 function logComponentTrigger(
   fiber: Fiber,
@@ -329,25 +463,28 @@ export function logComponentRender(
       const props = fiber.memoizedProps;
       // const debugTask = fiber._debugTask;
 
+      let changedPropertyEntries = null;
+      let isDeeplyEqualAndUserShouldSeeWarning = false;
       if (
-        currentTrackingServiceOpts_diffPropsOnUpdate &&
+        currentTrackingServiceOpts_diffPropsOnUpdateMode !== false &&
         props !== null &&
         alternate !== null &&
         alternate.memoizedProps !== props
       ) {
-        // If this is an update, we'll diff the props and emit which ones changed.
-        const properties: Array<[string, string]> = [
-          // reusableChangedPropsEntry
-        ];
-        const isDeeplyEqual = addObjectDiffToProperties(
-          alternate.memoizedProps,
-          props,
-          properties,
-          0,
-        );
-        if (properties.length > 1) {
-          let isDeeplyEqualAndUserShouldSeeWarning = false;
+        const properties: Array<[string, string]> = [];
+        if (currentTrackingServiceOpts_diffPropsOnUpdateMode === 'deep') {
+          // If this is an update, we'll diff the props and emit which ones changed.
+          const isDeeplyEqual = addObjectDiffToProperties(
+            alternate.memoizedProps,
+            props,
+            properties,
+            0,
+          );
+          if (properties.length > 0) {
+            properties.unshift(['Changed Props', '']);
+          }
           if (
+            properties.length > 1 &&
             isDeeplyEqual &&
             // !alreadyWarnedForDeepEquality &&
             !includesSomeLane(alternate.lanes, committedLanes) &&
@@ -364,76 +501,50 @@ export function logComponentRender(
             // properties[0] = reusableDeeplyEqualPropsEntry;
             // reusableComponentDevToolDetails.color = 'warning';
             // reusableComponentDevToolDetails.tooltipText = DEEP_EQUALITY_WARNING;
-          } else {
-            // reusableComponentDevToolDetails.color = color;
-            // reusableComponentDevToolDetails.tooltipText = name;
           }
-          // const measureName = '\u200b' + name; // TODO use measureName instead of name? what is the purpose of the invisible space at the start?
-          // $FlowFixMe
-          currentTrackingService.createFinishedSpan(
-            // measureName,
-            name,
-            'ReactComponent',
-            startTime,
-            endTime,
-            {
-              knownAdditionalData: {
-                // track: COMPONENTS_TRACK,
-                isDeeplyEqualAndUserShouldSeeWarning,
-                changedPropertyEntries: properties,
-              },
-            },
+        } else if (currentTrackingServiceOpts_diffPropsOnUpdateMode === 'shallow') {
+          addShallowPropDiffToProperties(
+            alternate.memoizedProps,
+            props,
+            properties,
           );
-          // reusableComponentDevToolDetails.properties = properties;
-          // reusableComponentOptions.start = startTime;
-          // reusableComponentOptions.end = endTime;
-          //
-          // const measureName = '\u200b' + name;
-          // if (debugTask != null) {
-          //   debugTask.run(
-          //     // $FlowFixMe[method-unbinding]
-          //     performance.measure.bind(
-          //       performance,
-          //       measureName,
-          //       reusableComponentOptions,
-          //     ),
-          //   );
-          // } else {
-          //   performance.measure(measureName, reusableComponentOptions);
-          // }
-          // performance.clearMeasures(measureName);
-        } else {
-          // $FlowFixMe
-          currentTrackingService.createFinishedSpan(
-            name,
-            'ReactComponent',
-            startTime,
-            endTime,
-          );
-          // if (debugTask != null) {
-          //   debugTask.run(
-          //     // $FlowFixMe[method-unbinding]
-          //     console.timeStamp.bind(
-          //       console,
-          //       name,
-          //       startTime,
-          //       endTime,
-          //       COMPONENTS_TRACK,
-          //       undefined,
-          //       color,
-          //     ),
-          //   );
-          // } else {
-          //   console.timeStamp(
-          //     name,
-          //     startTime,
-          //     endTime,
-          //     COMPONENTS_TRACK,
-          //     undefined,
-          //     color,
-          //   );
-          // }
         }
+        if (properties.length > 1) {
+          changedPropertyEntries = properties;
+        }
+      }
+
+      const changedContextNames =
+        currentTrackingServiceOpts_diffContextsOnUpdateMode === 'shallow' &&
+        alternate !== null
+          ? getChangedContextNames(alternate.dependencies, fiber.dependencies)
+          : null;
+
+      if (
+        changedPropertyEntries !== null ||
+        changedContextNames !== null ||
+        isDeeplyEqualAndUserShouldSeeWarning
+      ) {
+        const knownAdditionalData: any = {};
+        if (changedPropertyEntries !== null) {
+          knownAdditionalData.changedPropertyEntries = changedPropertyEntries;
+        }
+        if (changedContextNames !== null) {
+          knownAdditionalData.changedContextNames = changedContextNames;
+        }
+        if (isDeeplyEqualAndUserShouldSeeWarning) {
+          knownAdditionalData.isDeeplyEqualAndUserShouldSeeWarning = true;
+        }
+        // $FlowFixMe
+        currentTrackingService.createFinishedSpan(
+          name,
+          'ReactComponent',
+          startTime,
+          endTime,
+          {
+            knownAdditionalData,
+          },
+        );
       } else {
         // $FlowFixMe
         currentTrackingService.createFinishedSpan(

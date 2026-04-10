@@ -11,7 +11,8 @@ yarn run custom-build
 
 How to publish:
 ```
-node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest --publishVersion 19.3.0-2
+# WARNING: execute this in the TERMINAL, not via IntelliJ!
+node ./scripts/release/publish.js --onlyPackages react,react-dom --tags latest --publishVersion 19.3.0-4
 ```
 
 Either just copy over some files manually or
