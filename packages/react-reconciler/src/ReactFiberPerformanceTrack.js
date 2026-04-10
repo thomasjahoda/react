@@ -260,21 +260,14 @@ function getChangedContextNames(
     return null;
   }
 
-  // TODO [current-agent-task] this is really slow. Just iterate over both prevDependencies and nextDependencies at the same time and assume they are in the same order.
-  const previousValues: Map<mixed, mixed> = new Map();
-  let prevDependency = prevDependencies.firstContext;
-  while (prevDependency !== null) {
-    previousValues.set(prevDependency.context, prevDependency.memoizedValue);
-    prevDependency = prevDependency.next;
-  }
-
   const changedContextNames: Array<string> = [];
+  let prevDependency = prevDependencies.firstContext;
   let nextDependency = nextDependencies.firstContext;
-  while (nextDependency !== null) {
+  while (prevDependency !== null && nextDependency !== null) {
     const context = nextDependency.context;
     if (
-      previousValues.has(context) &&
-      !is(previousValues.get(context), nextDependency.memoizedValue)
+      prevDependency.context === context &&
+      !is(prevDependency.memoizedValue, nextDependency.memoizedValue)
     ) {
       const contextName = context.displayName;
       if (typeof contextName === 'string') {
@@ -283,6 +276,7 @@ function getChangedContextNames(
         changedContextNames.push('<context-without-displayName>');
       }
     }
+    prevDependency = prevDependency.next;
     nextDependency = nextDependency.next;
   }
 
