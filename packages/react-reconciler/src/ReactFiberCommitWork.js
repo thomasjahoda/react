@@ -811,7 +811,7 @@ function commitLayoutEffectOnFiber(
               (finishedWork.mode & ProfileMode) !== NoMode &&
               componentEffectStartTime >= 0 &&
               componentEffectEndTime >= 0 &&
-              componentEffectEndTime - componentEffectStartTime > 0.05
+              componentEffectEndTime - componentEffectStartTime > 0.01
             ) {
               logComponentReappeared(
                 finishedWork,
@@ -882,13 +882,16 @@ function commitLayoutEffectOnFiber(
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0
   ) {
-    if (componentEffectSpawnedUpdate || componentEffectDuration > 0.05) {
+    if (componentEffectSpawnedUpdate || componentEffectDuration > 0.01) {
       logComponentEffect(
         finishedWork,
         componentEffectStartTime,
         componentEffectEndTime,
         componentEffectDuration,
         componentEffectErrors,
+        'layout-effect',
+        'layout',
+        componentEffectSpawnedUpdate,
       );
     }
     if (
@@ -896,7 +899,7 @@ function commitLayoutEffectOnFiber(
       finishedWork.alternate === null &&
       finishedWork.return !== null &&
       finishedWork.return.alternate !== null &&
-      componentEffectEndTime - componentEffectStartTime > 0.05
+      componentEffectEndTime - componentEffectStartTime > 0.01
     ) {
       const isHydration = isHydratingParent(
         finishedWork.return.alternate,
@@ -1438,7 +1441,7 @@ function commitDeletionEffects(
     (deletedFiber.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    componentEffectEndTime - componentEffectStartTime > 0.05
+    componentEffectEndTime - componentEffectStartTime > 0.01
   ) {
     logComponentUnmount(
       deletedFiber,
@@ -1796,7 +1799,7 @@ function commitDeletionEffectsOnFiber(
     (deletedFiber.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    (componentEffectSpawnedUpdate || componentEffectDuration > 0.05)
+    (componentEffectSpawnedUpdate || componentEffectDuration > 0.01)
   ) {
     logComponentEffect(
       deletedFiber,
@@ -1804,6 +1807,9 @@ function commitDeletionEffectsOnFiber(
       componentEffectEndTime,
       componentEffectDuration,
       componentEffectErrors,
+      'layout-effect',
+      'deletion',
+      componentEffectSpawnedUpdate,
     );
   }
 
@@ -2500,7 +2506,7 @@ function commitMutationEffectsOnFiber(
           (finishedWork.mode & ProfileMode) !== NoMode &&
           componentEffectStartTime >= 0 &&
           componentEffectEndTime >= 0 &&
-          componentEffectEndTime - componentEffectStartTime > 0.05
+          componentEffectEndTime - componentEffectStartTime > 0.01
         ) {
           logComponentReappeared(
             finishedWork,
@@ -2551,7 +2557,7 @@ function commitMutationEffectsOnFiber(
                 (finishedWork.mode & ProfileMode) !== NoMode &&
                 componentEffectStartTime >= 0 &&
                 componentEffectEndTime >= 0 &&
-                componentEffectEndTime - componentEffectStartTime > 0.05
+                componentEffectEndTime - componentEffectStartTime > 0.01
               ) {
                 logComponentDisappeared(
                   finishedWork,
@@ -2680,13 +2686,16 @@ function commitMutationEffectsOnFiber(
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0
   ) {
-    if (componentEffectSpawnedUpdate || componentEffectDuration > 0.05) {
+    if (componentEffectSpawnedUpdate || componentEffectDuration > 0.01) {
       logComponentEffect(
         finishedWork,
         componentEffectStartTime,
         componentEffectEndTime,
         componentEffectDuration,
         componentEffectErrors,
+        'layout-effect',
+        'mutation',
+        componentEffectSpawnedUpdate,
       );
     }
     if (
@@ -2694,7 +2703,7 @@ function commitMutationEffectsOnFiber(
       finishedWork.alternate === null &&
       finishedWork.return !== null &&
       finishedWork.return.alternate !== null &&
-      componentEffectEndTime - componentEffectStartTime > 0.05
+      componentEffectEndTime - componentEffectStartTime > 0.01
     ) {
       const isHydration = isHydratingParent(
         finishedWork.return.alternate,
@@ -3061,7 +3070,7 @@ export function disappearLayoutEffects(finishedWork: Fiber) {
     (finishedWork.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    (componentEffectSpawnedUpdate || componentEffectDuration > 0.05)
+    (componentEffectSpawnedUpdate || componentEffectDuration > 0.01)
   ) {
     logComponentEffect(
       finishedWork,
@@ -3069,6 +3078,9 @@ export function disappearLayoutEffects(finishedWork: Fiber) {
       componentEffectEndTime,
       componentEffectDuration,
       componentEffectErrors,
+      'layout-effect',
+      'disappear',
+      componentEffectSpawnedUpdate,
     );
   }
 
@@ -3297,7 +3309,7 @@ export function reappearLayoutEffects(
     (finishedWork.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    (componentEffectSpawnedUpdate || componentEffectDuration > 0.05)
+    (componentEffectSpawnedUpdate || componentEffectDuration > 0.01)
   ) {
     logComponentEffect(
       finishedWork,
@@ -3305,6 +3317,9 @@ export function reappearLayoutEffects(
       componentEffectEndTime,
       componentEffectDuration,
       componentEffectErrors,
+      'layout-effect',
+      'reappear',
+      componentEffectSpawnedUpdate,
     );
   }
 
@@ -4030,13 +4045,13 @@ function commitPassiveMountOnFiber(
           ) {
             // Log the reappear in the render phase.
             const startTime = ((finishedWork.actualStartTime: any): number);
-            if (startTime >= 0 && endTime - startTime > 0.05) {
+            if (startTime >= 0 && endTime - startTime > 0.01) {
               logComponentReappeared(finishedWork, startTime, endTime);
             }
             if (
               componentEffectStartTime >= 0 &&
               componentEffectEndTime >= 0 &&
-              componentEffectEndTime - componentEffectStartTime > 0.05
+              componentEffectEndTime - componentEffectStartTime > 0.01
             ) {
               logComponentReappeared(
                 finishedWork,
@@ -4135,22 +4150,25 @@ function commitPassiveMountOnFiber(
     if (isMount) {
       // Log the mount in the render phase.
       const startTime = ((finishedWork.actualStartTime: any): number);
-      // TODO replace 0.05 with some lower threshold to find out what exactly is rendering so much under react-router?
-      if (startTime >= 0 && endTime - startTime > 0.05) {
+      // TODO return back to 0.05 threshold? 0.05ms should be mostly enough?
+      if (startTime >= 0 && endTime - startTime > 0.01) {
         logComponentMount(finishedWork, startTime, endTime);
       }
     }
     if (componentEffectStartTime >= 0 && componentEffectEndTime >= 0) {
-      if (componentEffectSpawnedUpdate || componentEffectDuration > 0.05) {
+      if (componentEffectSpawnedUpdate || componentEffectDuration > 0.01) {
         logComponentEffect(
           finishedWork,
           componentEffectStartTime,
           componentEffectEndTime,
           componentEffectDuration,
           componentEffectErrors,
+          'effect',
+          'passiveMount',
+          componentEffectSpawnedUpdate,
         );
       }
-      if (isMount && componentEffectEndTime - componentEffectStartTime > 0.05) {
+      if (isMount && componentEffectEndTime - componentEffectStartTime > 0.01) {
         logComponentMount(
           finishedWork,
           componentEffectStartTime,
@@ -4422,7 +4440,7 @@ export function reconnectPassiveEffects(
     (finishedWork.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    (componentEffectSpawnedUpdate || componentEffectDuration > 0.05)
+    (componentEffectSpawnedUpdate || componentEffectDuration > 0.01)
   ) {
     logComponentEffect(
       finishedWork,
@@ -4430,6 +4448,9 @@ export function reconnectPassiveEffects(
       componentEffectEndTime,
       componentEffectDuration,
       componentEffectErrors,
+      'effect',
+      'reconnect',
+      componentEffectSpawnedUpdate,
     );
   }
 
@@ -4805,7 +4826,7 @@ function recursivelyTraversePassiveUnmountEffects(parentFiber: Fiber): void {
           (childToDelete.mode & ProfileMode) !== NoMode &&
           componentEffectStartTime >= 0 &&
           componentEffectEndTime >= 0 &&
-          componentEffectEndTime - componentEffectStartTime > 0.05
+          componentEffectEndTime - componentEffectStartTime > 0.01
         ) {
           logComponentUnmount(
             childToDelete,
@@ -4903,7 +4924,7 @@ function commitPassiveUnmountOnFiber(finishedWork: Fiber): void {
           (finishedWork.mode & ProfileMode) !== NoMode &&
           componentEffectStartTime >= 0 &&
           componentEffectEndTime >= 0 &&
-          componentEffectEndTime - componentEffectStartTime > 0.05
+          componentEffectEndTime - componentEffectStartTime > 0.01
         ) {
           logComponentDisappeared(
             finishedWork,
@@ -4930,7 +4951,7 @@ function commitPassiveUnmountOnFiber(finishedWork: Fiber): void {
     (finishedWork.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    (componentEffectSpawnedUpdate || componentEffectDuration > 0.05)
+    (componentEffectSpawnedUpdate || componentEffectDuration > 0.01)
   ) {
     logComponentEffect(
       finishedWork,
@@ -4938,6 +4959,9 @@ function commitPassiveUnmountOnFiber(finishedWork: Fiber): void {
       componentEffectEndTime,
       componentEffectDuration,
       componentEffectErrors,
+      'effect',
+      'passiveUnmount',
+      componentEffectSpawnedUpdate,
     );
   }
 
@@ -4972,7 +4996,7 @@ function recursivelyTraverseDisconnectPassiveEffects(parentFiber: Fiber): void {
           (childToDelete.mode & ProfileMode) !== NoMode &&
           componentEffectStartTime >= 0 &&
           componentEffectEndTime >= 0 &&
-          componentEffectEndTime - componentEffectStartTime > 0.05
+          componentEffectEndTime - componentEffectStartTime > 0.01
         ) {
           // While this is inside the disconnect path. This is a deletion within the
           // disconnected tree. We currently log this for deletions in the mutation
@@ -5041,7 +5065,7 @@ export function disconnectPassiveEffect(finishedWork: Fiber): void {
     (finishedWork.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    (componentEffectSpawnedUpdate || componentEffectDuration > 0.05)
+    (componentEffectSpawnedUpdate || componentEffectDuration > 0.01)
   ) {
     logComponentEffect(
       finishedWork,
@@ -5049,6 +5073,9 @@ export function disconnectPassiveEffect(finishedWork: Fiber): void {
       componentEffectEndTime,
       componentEffectDuration,
       componentEffectErrors,
+      'effect',
+      'disconnect',
+      componentEffectSpawnedUpdate,
     );
   }
 
@@ -5236,7 +5263,7 @@ function commitPassiveUnmountInsideDeletedTreeOnFiber(
     (current.mode & ProfileMode) !== NoMode &&
     componentEffectStartTime >= 0 &&
     componentEffectEndTime >= 0 &&
-    (componentEffectSpawnedUpdate || componentEffectDuration > 0.05)
+    (componentEffectSpawnedUpdate || componentEffectDuration > 0.01)
   ) {
     logComponentEffect(
       current,
@@ -5244,6 +5271,9 @@ function commitPassiveUnmountInsideDeletedTreeOnFiber(
       componentEffectEndTime,
       componentEffectDuration,
       componentEffectErrors,
+      'effect',
+      'passiveUnmountInsideDeletedTree',
+      componentEffectSpawnedUpdate,
     );
   }
 

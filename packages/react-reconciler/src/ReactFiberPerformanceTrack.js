@@ -719,6 +719,19 @@ export function logComponentEffect(
   endTime: number,
   selfTime: number,
   errors: null | Array<CapturedValue<mixed>>,
+  effectType: 'effect' | 'layout-effect',
+  reason:
+    | 'layout'
+    | 'deletion'
+    | 'mutation'
+    | 'passiveMount'
+    | 'passiveUnmountInsideDeletedTree'
+    | 'passiveUnmount'
+    | 'disappear'
+    | 'disconnect'
+    | 'reappear'
+    | 'reconnect',
+  spawnedUpdate: boolean,
 ): void {
   if (currentTrackingService === undefined) {
     return;
@@ -741,6 +754,16 @@ export function logComponentEffect(
           : selfTime < 500
             ? 'secondary-dark'
             : 'error';
+    const knownAdditionalData = {
+      // track: COMPONENTS_TRACK,
+      type: effectType,
+      reason,
+      color,
+      selfTime,
+    };
+    if (spawnedUpdate) {
+      knownAdditionalData.spawnedUpdate = true;
+    }
     // $FlowFixMe
     currentTrackingService.createFinishedSpan(
       name,
@@ -748,11 +771,7 @@ export function logComponentEffect(
       startTime,
       endTime,
       {
-        knownAdditionalData: {
-          // track: COMPONENTS_TRACK,
-          color,
-          selfTime,
-        },
+        knownAdditionalData: knownAdditionalData,
       },
     );
   }
@@ -790,6 +809,7 @@ export function logYieldTime(startTime: number, endTime: number): void {
       {
         knownAdditionalData: {
           // track: COMPONENTS_TRACK,
+          type: 'yield',
           color,
         },
       },
@@ -815,6 +835,7 @@ export function logSuspendedYieldTime(
       {
         knownAdditionalData: {
           // track: COMPONENTS_TRACK,
+          type: 'suspendedYield',
           color: 'primary-light',
         },
       },
@@ -840,6 +861,7 @@ export function logActionYieldTime(
       {
         knownAdditionalData: {
           // track: COMPONENTS_TRACK,
+          type: 'actionYield',
           color: 'primary-light',
         },
       },
@@ -924,6 +946,15 @@ export function logBlockingStart(
         if (updateMethodName != null) {
           properties.push(['Method name', updateMethodName]);
         }
+        const knownAdditionalData = {
+          properties,
+          track: currentTrack,
+          // trackGroup: LANES_TRACK_GROUP,
+          color,
+        };
+        if (enablePerformanceIssueReporting && isSpawnedUpdate) {
+          knownAdditionalData.performanceIssue = reusableCascadingUpdateIssue;
+        }
         // $FlowFixMe
         currentTrackingService.createFinishedSpan(
           label,
@@ -931,16 +962,7 @@ export function logBlockingStart(
           updateTime,
           renderStartTime,
           {
-            knownAdditionalData: {
-              properties,
-              track: currentTrack,
-              // trackGroup: LANES_TRACK_GROUP,
-              color,
-              performanceIssue:
-                enablePerformanceIssueReporting && isSpawnedUpdate
-                  ? reusableCascadingUpdateIssue
-                  : undefined,
-            },
+            knownAdditionalData: knownAdditionalData,
           },
         );
       } else {
