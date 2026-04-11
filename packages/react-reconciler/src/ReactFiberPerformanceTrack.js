@@ -719,7 +719,8 @@ export function logComponentEffect(
   endTime: number,
   selfTime: number,
   errors: null | Array<CapturedValue<mixed>>,
-  effectType: 'effect' | 'layout-effect',
+  phase: 'layout' | 'mutation' | 'passive',
+  effectType: 'effect' | 'layout-effect' | 'insertion-effect' | 'mixed-effect',
   reason:
     | 'layout'
     | 'deletion'
@@ -756,6 +757,7 @@ export function logComponentEffect(
             : 'error';
     const knownAdditionalData = {
       // track: COMPONENTS_TRACK,
+      phase,
       type: effectType,
       reason,
       color,
